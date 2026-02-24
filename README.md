@@ -5,7 +5,7 @@
 
 On-Device Software Quality Assurance (OSQA). Software can and should be deterministic 
 
-## How it work
+## How it works
 
 - Load a software expected behaviour specification with verification steps
 - Launch a quality assurance session
@@ -51,4 +51,17 @@ OSQA is not persistent, data is only collected and mantained during a QA session
     }, ...
   ]
 }
+```
+
+---
+
+## How to run the app
+
+### Clone the project
+```bash 
+$ git clone git@github.com:samuelowino/osqa.git
+```
+### Navigate to project directory; build and run jar file
+```bash
+$ cd osqa; mvn clean install ; cd target; java -jar osqa-1.0.jar
 ```
