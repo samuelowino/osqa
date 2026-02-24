@@ -1,4 +1,8 @@
-# osqa
+<img src="app_icon.png" width="100" />
+
+# OSQA 
+> Pronounced oska
+
 On-Device Software Quality Assurance (OSQA). Software can and should be deterministic 
 
 ## How it work
