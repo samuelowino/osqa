@@ -1,4 +1,4 @@
-<img src="app_icon.png" width="100" />
+<img src="transparent_icon.png" width="250" />
 
 # OSQA 
 > Pronounced oska
@@ -9,15 +9,50 @@ On-Device Software Quality Assurance (OSQA). Software can and should be determin
 
 - Load a software expected behaviour specification with verification steps
 - Launch a quality assurance session
-- Verify expected behaviour
-- Analysis quality assurance session results and analysis
+- Verify expected behaviour per test case
+- Evaluate the quality assurance session results
 
 ## Configuration Options
 
 - Minimum passed test cases
 - Minimum passed test cases per module
 
-OSQA is not persistent, data is only collected and mantained during a QA session, when the QA session is terminated, all data is deleted.
+OSQA is not persistent, data is only collected and maintained during a QA session, when the QA session is terminated, all data is deleted.
+
+## Sample Modules Specification
+
+```json
+{
+  "modules": [
+    {
+      "id": "a76b4d46-e7df-43ea-afec-221b899ae527",
+      "name": "Core Calendar and Navigation",
+      "description": "Validates basic calendar rendering, navigation controls, and fundamental UI elements.",
+      "priority": "Critical",
+      "test-cases": [
+        {
+          "id": "TC-SMOKE-001",
+          "title": "Smoke - Create Daily Task",
+          "spec-file": "tc-smoke-001.json"
+        }
+      ]
+    },
+    {
+      "id": "9721cac2-bdac-4bbc-85bf-0ee136adbd3b",
+      "name": "Basic Recurrence Creation",
+      "description": "Tests the fundamental creation of daily, weekly, and yearly recurring tasks and their initial placement on the calendar.",
+      "priority": "Critical",
+      "test-cases": [
+        {
+          "id": "TC-SMOKE-001",
+          "title": "Smoke - Create Daily Task",
+          "spec-file": "tc-smoke-001.json"
+        }
+      ]
+    }
+  ]
+}
+```
 
 ## Sample Test Case Specification
 
@@ -56,11 +91,15 @@ OSQA is not persistent, data is only collected and mantained during a QA session
 ---
 
 ## How to run the app
+> Build from source
 
 ### Clone the project
 ```bash 
 $ git clone git@github.com:samuelowino/osqa.git
 ```
+
+### Add an OSQA Test Module Data Source in /resources/env.properties
+
 ### Navigate to project directory; build and run jar file
 ```bash
 $ cd osqa; mvn clean install ; cd target; java -jar osqa-1.0.jar

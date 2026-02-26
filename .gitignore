@@ -18,3 +18,4 @@ buildNumber.properties
 .idea
 .idea/
 .DS_Store
+src/main/resources/env.properties
