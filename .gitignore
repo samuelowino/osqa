@@ -18,4 +18,5 @@ buildNumber.properties
 .idea
 .idea/
 .DS_Store
+*.tmp
 data/

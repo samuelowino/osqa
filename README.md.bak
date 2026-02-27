@@ -105,6 +105,8 @@ $ git clone git@github.com:samuelowino/osqa.git
 $ cd osqa; mvn clean install ; cd target; java -jar osqa-1.0.jar
 ```
 
+
+
 <!-- coverage start -->
 ## 📊 Code Coverage Report
 
@@ -112,11 +114,11 @@ $ cd osqa; mvn clean install ; cd target; java -jar osqa-1.0.jar
 
 | Metric      | Covered | Missed | Total | Coverage  |
 |-------------|---------|--------|-------|-----------|
-| INSTRUCTION | 632     | 543    | 1175  | 53.79% ✅  |
-| LINE        | 139     | 94     | 233   | 59.66% ✅  |
+| INSTRUCTION | 632     | 543    | 1175  | 53.79% ⚠️ |
+| LINE        | 139     | 94     | 233   | 59.66% ⚠️ |
 | BRANCH      | 57      | 67     | 124   | 45.97% ⚠️ |
-| METHOD      | 21      | 11     | 32    | 65.62% ✅  |
-| CLASS       | 12      | 3      | 15    | 80.00% ✅  |
+| METHOD      | 21      | 11     | 32    | 65.62% ⚠️ |
+| CLASS       | 12      | 3      | 15    | 80.00% ⚠️ |
 | COMPLEXITY  | 32      | 63     | 95    | 33.68% ⚠️ |
 
 ### 🚨 Least Tested Elements (coverage below 50%)
