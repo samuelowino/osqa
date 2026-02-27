@@ -49,8 +49,8 @@ public class App {
         do {
             modulesFile = switch (OSQAConfig.loadModulesListFile()) {
                 case Result.Success<Void> _ -> Optional.of(OSQAConfig.MODULE_FILE);
-                case Result.Failure failure -> {
-                    LOG.error("Didn't find pre-existing modules config: {}", failure.error().getLocalizedMessage());
+                case Result.Failure (Throwable failure) -> {
+                    LOG.error("Didn't find pre-existing modules config: {}", failure.getLocalizedMessage());
                     yield Optional.empty();
                 }
             };
@@ -69,19 +69,19 @@ public class App {
         } while (modulesFile.isEmpty());
         var modules = switch (OSQAConfig.loadModules(modulesFile.get())) {
             case Result.Success<List<OSQAModule>> success -> success.value();
-            case Result.Failure failure -> throw new RuntimeException(failure.error());
+            case Result.Failure (Throwable failure) -> throw new RuntimeException(failure);
         };
         var selectedModule = switch (session.moduleSelection(modules)){
             case Result.Success<OSQAModule> success -> success.value();
-            case Result.Failure failure -> throw new RuntimeException(failure.error());
+            case Result.Failure (Throwable failure) -> throw new RuntimeException(failure);
         };
         IO.println("Selected Module -> " + selectedModule.name());
         List<OSQAOutcome> testSessionReport = new ArrayList<>();
         for (OSQATestCase testCase : selectedModule.testCases()) {
             Optional<OSQATestSpec> optionalTestSpec = switch(OSQAConfig.loadTestCaseSpec(testCase)) {
                 case Result.Success<OSQATestSpec> success -> Optional.of(success.value());
-                case Result.Failure failure -> {
-                    LOG.error(failure.error().getLocalizedMessage());
+                case Result.Failure (Throwable failure) -> {
+                    LOG.error(failure.getLocalizedMessage());
                     LOG.error("Moving to next test spec");
                     yield Optional.empty();
                 }

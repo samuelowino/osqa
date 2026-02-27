@@ -45,8 +45,6 @@ public record OSQASession(Scanner scanner) {
                 }
                 var moduleConfFileName = OSQAConfig.timestampedName(LocalDateTime.now(),"json");
                 Files.writeString(Paths.get(moduleConfFileName),objectMapper.writeValueAsString(modules));
-                var inputStream = OSQASession.class.getClassLoader().getResourceAsStream("env.properties");
-
                 Files.writeString(Paths.get("env.properties"),moduleConfFileName);
                 newConfigCreated = true;
             } catch (IOException error){

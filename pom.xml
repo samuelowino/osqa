@@ -74,6 +74,7 @@ See <https://www.gnu.org/licenses/> for more details.
     </dependency>
   </dependencies>
   <build>
+    <finalName>osqa</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

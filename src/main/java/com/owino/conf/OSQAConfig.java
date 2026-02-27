@@ -30,19 +30,18 @@ import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 public class OSQAConfig {
     public static final String MODULE_FILE = "data/modules.json";
+    public static final String MODULE_DIR = "data";
     public static Result<Void> loadModulesListFile(){
         try {
-            Path envFile = Paths.get("data" + "/" + "env.properties");
+            Path envFile = Paths.get(MODULE_DIR + "/" + "env.properties");
             if (Files.notExists(envFile)){
-                if (Files.notExists(Paths.get("data"))){
-                    Files.createDirectory(Paths.get("data"));
-                }
+                var dir = Paths.get(MODULE_DIR);
+                if (Files.notExists(dir)) Files.createDirectory(dir);
                 envFile = Files.createFile(Paths.get("data" + "/" + "env.properties"));
                 Files.writeString(envFile,"modules-file = " + OSQAConfig.MODULE_FILE);
             }
             return Result.success(null);
         } catch (IOException error) {
-            error.printStackTrace();
             return Result.failure("Failed to load modules list file: cause " + error.getLocalizedMessage());
         }
     }
