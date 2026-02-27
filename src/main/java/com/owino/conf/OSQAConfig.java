@@ -18,23 +18,31 @@ package com.owino.conf;
 import com.owino.core.Result;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Properties;
 import com.owino.core.OSQAModel.OSQAModule;
 import com.owino.core.OSQAModel.OSQATestCase;
 import com.owino.core.OSQAModel.OSQATestSpec;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 public class OSQAConfig {
-    public static Result<String> loadModulesListFile(){
-        try(var inputStream = OSQAConfig.class.getClassLoader().getResourceAsStream("env.properties")) {
-            var properties = new Properties();
-            properties.load(inputStream);
-            var fileName = properties.getProperty("modules-file");
-            if (fileName == null || fileName.isBlank()) return Result.failure("Invalid modules config file name -> " + fileName);
-            return Result.success(fileName);
+    public static final String MODULE_FILE = "data/modules.json";
+    public static Result<Void> loadModulesListFile(){
+        try {
+            Path envFile = Paths.get("data" + "/" + "env.properties");
+            if (Files.notExists(envFile)){
+                if (Files.notExists(Paths.get("data"))){
+                    Files.createDirectory(Paths.get("data"));
+                }
+                envFile = Files.createFile(Paths.get("data" + "/" + "env.properties"));
+                Files.writeString(envFile,"modules-file = " + OSQAConfig.MODULE_FILE);
+            }
+            return Result.success(null);
         } catch (IOException error) {
+            error.printStackTrace();
             return Result.failure("Failed to load modules list file: cause " + error.getLocalizedMessage());
         }
     }
@@ -56,5 +64,9 @@ public class OSQAConfig {
         } catch (IOException error){
             return Result.failure(error.getLocalizedMessage());
         }
+    }
+    public static String timestampedName(LocalDateTime createdTime, String ext) {
+        var formater = DateTimeFormatter.ofPattern("yyyy-MM-dd-hh-mm-ss");
+        return createdTime.format(formater) + "." + ext;
     }
 }

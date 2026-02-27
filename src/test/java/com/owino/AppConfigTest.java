@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import com.owino.core.OSQAModel.OSQAModule;
@@ -34,8 +36,7 @@ import tools.jackson.databind.exc.ValueInstantiationException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class AppConfigTest {
-    private final String MODULE_FILE = "test-modules.json";
-    private final String TEST_CASE_SPEC_FILE = "test-001-spec.json";
+    private final String TEST_CASE_SPEC_FILE = "data/test-001-spec.json";
     private Path modulesFile;
     private Path testSpecFile;
     @BeforeEach
@@ -51,7 +52,8 @@ public class AppConfigTest {
         }
     }
     private void prepareModuleFile() throws IOException {
-        var filePath = Paths.get(MODULE_FILE);
+        var filePath = Paths.get(OSQAConfig.MODULE_FILE);
+        Files.createDirectory(Paths.get("data"));
         modulesFile = Files.createFile(filePath);
         assertThat(modulesFile).isNotNull();
         assertThat(Files.exists(modulesFile)).isTrue();
@@ -62,19 +64,15 @@ public class AppConfigTest {
     }
     @Test
     public void shouldLoadModulesListFileTest() {
-        Result<String> result = OSQAConfig.loadModulesListFile();
-        assertThat(result instanceof Result.Success).isTrue();
-        var modulesFile = ((Result.Success<String>) result).value();
-        assertThat(modulesFile).isNotNull();
-        assertThat(modulesFile).isEqualTo(MODULE_FILE);
+        Result<Void> result = OSQAConfig.loadModulesListFile();
+        System.out.println(result);
+        assertThat(result instanceof Result.Success<Void>).isTrue();
     }
     @Test
     public void shouldComposeModuleListTest() {
-        Result<String> result = OSQAConfig.loadModulesListFile();
-        assertThat(result instanceof Result.Success<String>).isTrue();
-        var modulesFile = ((Result.Success<String>) result).value();
-        assertThat(modulesFile).isEqualTo(MODULE_FILE);
-        Result<List<OSQAModule>> loadModulesResult = OSQAConfig.loadModules(modulesFile);
+        Result<Void> result = OSQAConfig.loadModulesListFile();
+        assertThat(result instanceof Result.Success).isTrue();
+        Result<List<OSQAModule>> loadModulesResult = OSQAConfig.loadModules(OSQAConfig.MODULE_FILE);
         assertThat(loadModulesResult instanceof Result.Success<List<OSQAModule>>).isTrue();
         var modules = ((Result.Success<List<OSQAModule>>) loadModulesResult).value();
         assertThat(modules).isNotEmpty();
@@ -102,7 +100,6 @@ public class AppConfigTest {
     public void shouldLoadTestSpecificationTest(){
         var expectedTestSpec = new OSQATestSpec(
                 "a06e2598-bed3-4393-b6a2-9645b6bfa294",
-                "Task Completion Sync",
                 "On Device B, mark the 'Team Sync' task as complete.",
                 List.of(
                         new OSQAVerification(1,"On Device B, the task is marked complete and a new instance appears with the correct future date."),
@@ -116,7 +113,6 @@ public class AppConfigTest {
         assertThat(result instanceof Result.Success<OSQATestSpec>).isTrue();
         OSQATestSpec actualTestSpec = ((Result.Success<OSQATestSpec>) result).value();
         assertThat(actualTestSpec).isNotNull();
-        assertThat(actualTestSpec.title()).isEqualTo(expectedTestSpec.title());
         assertThat(actualTestSpec.action()).isEqualTo(expectedTestSpec.action());
         assertThat(actualTestSpec.verifications().size()).isEqualTo(expectedTestSpec.verifications().size());
         assertThat(actualTestSpec.verifications()).isNotEmpty();
@@ -128,7 +124,7 @@ public class AppConfigTest {
     @Test
     public void shouldRejectInvalidJsonFieldsTest() throws IOException{
         Files.deleteIfExists(modulesFile);
-        var filePath = Paths.get(MODULE_FILE);
+        var filePath = Paths.get(OSQAConfig.MODULE_FILE);
         modulesFile = Files.createFile(filePath);
         assertThat(modulesFile).isNotNull();
         assertThat(Files.exists(modulesFile)).isTrue();
@@ -136,17 +132,34 @@ public class AppConfigTest {
         try(var stream = Files.lines(modulesFile)){
             assertThat(stream.count()).isGreaterThan(0);
         }
-        Result<String> result = OSQAConfig.loadModulesListFile();
-        assertThat(result instanceof Result.Success<String>).isTrue();
-        var modulesFile = ((Result.Success<String>) result).value();
-        assertThat(modulesFile).isEqualTo(MODULE_FILE);
-        assertThatThrownBy(() -> OSQAConfig.loadModules(modulesFile))
+        Result<Void> result = OSQAConfig.loadModulesListFile();
+        assertThat(result instanceof Result.Success).isTrue();
+        assertThatThrownBy(() -> OSQAConfig.loadModules(OSQAConfig.MODULE_FILE))
                 .isInstanceOf(ValueInstantiationException.class);
+    }
+    @Test
+    public void shouldGenerateTimestampedModuleFileNameTest(){
+        var expectedFileName = "2025-11-20-08-34-40.json";
+        var extension = "json";
+        var created = LocalDateTime.of(2025,11,20,8,34,40);
+        String actualFileName = OSQAConfig.timestampedName(created,extension);
+        assertThat(actualFileName).isNotEmpty();
+        assertThat(actualFileName).isEqualTo(expectedFileName);
     }
     @AfterEach
     public void tearDown() throws IOException {
-        Files.deleteIfExists(modulesFile);
-        Files.deleteIfExists(testSpecFile);
+        var directory = Paths.get("data");
+        if (Files.exists(directory)){
+            Files.walk(directory)
+                    .sorted(Comparator.reverseOrder())
+                    .forEach(path -> {
+                        try {
+                            Files.deleteIfExists(path);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+        }
     }
     private final String modulesJson = """
             [
@@ -211,7 +224,6 @@ public class AppConfigTest {
     private final String testCaseSpecJson = """
             {
                 "uuid": "a06e2598-bed3-4393-b6a2-9645b6bfa294",
-                "title": "Task Completion Sync",
                 "action": "On Device B, mark the 'Team Sync' task as complete.",
                 "verifications": [
                   {

@@ -54,9 +54,8 @@ public class OSQASessionTest {
     public void shouldRenderSpecForIndividualCaseTest(){
         when(scanner.nextInt()).thenReturn(0);
         var testSpec = new OSQATestSpec(
-                "b723ba02-26a4-46d6-845b-5a7643df4eeb",
-                "Task Completion Sync",
-                "On Device B, mark the 'Team Sync' task as complete.",
+                "b722ba02-26a4-46d6-845b-5a7643df4eeb",
+                "On Device E, mark the 'Team Sync' task as complete.",
                 List.of(
                         new OSQAVerification(1,"On Device B, the task is marked complete and a new instance appears with the correct future date."),
                         new OSQAVerification(2,"On Device A, after a sync/refresh, the original task is marked complete and the new instance appears with the correct future date.")

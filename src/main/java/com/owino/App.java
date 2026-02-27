@@ -16,9 +16,12 @@ package com.owino;
  * along with OSQA.  If not, see <https://www.gnu.org/licenses/>.
  */
 import com.owino.conf.OSQAConfig;
-import com.owino.core.OSQAModel;
+import com.owino.core.OSQAModel.OSQATestCase;
 import com.owino.core.OSQASession;
 import com.owino.core.Result;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +32,7 @@ import com.owino.core.OSQAModel.OSQAOutcome;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 public class App {
-    private Logger LOG = LoggerFactory.getLogger(App.class);
+    private final Logger LOG = LoggerFactory.getLogger(App.class);
     void main() {
         IO.println("""
                  _____ _____  _____  ___
@@ -41,22 +44,40 @@ public class App {
                 
                 Welcome to OSQA!
                 """);
-        var modulesFile = switch (OSQAConfig.loadModulesListFile()) {
-            case Result.Success<String> success -> success.value();
-            case Result.Failure failure -> throw new RuntimeException(failure.error());
-        };
-        var modules = switch (OSQAConfig.loadModules(modulesFile)) {
+        var session = new OSQASession(new Scanner(System.in));
+        Optional<String> modulesFile;
+        do {
+            modulesFile = switch (OSQAConfig.loadModulesListFile()) {
+                case Result.Success<Void> _ -> Optional.of(OSQAConfig.MODULE_FILE);
+                case Result.Failure failure -> {
+                    LOG.error("Didn't find pre-existing modules config: {}", failure.error().getLocalizedMessage());
+                    yield Optional.empty();
+                }
+            };
+            try {
+                if (modulesFile.isEmpty() || Files.readString(Paths.get(modulesFile.get())).isBlank()){
+                    session.generateTestConfig();
+                }
+            } catch (IOException failure){
+                IO.println("Modules config file is empty");
+                IO.println("Setup a modules config for your tests:");
+                modulesFile = Optional.empty();
+            } finally {
+                if (modulesFile.isEmpty())
+                    session.generateTestConfig();
+            }
+        } while (modulesFile.isEmpty());
+        var modules = switch (OSQAConfig.loadModules(modulesFile.get())) {
             case Result.Success<List<OSQAModule>> success -> success.value();
             case Result.Failure failure -> throw new RuntimeException(failure.error());
         };
-        var session = new OSQASession(new Scanner(System.in));
         var selectedModule = switch (session.moduleSelection(modules)){
             case Result.Success<OSQAModule> success -> success.value();
             case Result.Failure failure -> throw new RuntimeException(failure.error());
         };
         IO.println("Selected Module -> " + selectedModule.name());
         List<OSQAOutcome> testSessionReport = new ArrayList<>();
-        for (OSQAModel.OSQATestCase testCase : selectedModule.testCases()) {
+        for (OSQATestCase testCase : selectedModule.testCases()) {
             Optional<OSQATestSpec> optionalTestSpec = switch(OSQAConfig.loadTestCaseSpec(testCase)) {
                 case Result.Success<OSQATestSpec> success -> Optional.of(success.value());
                 case Result.Failure failure -> {

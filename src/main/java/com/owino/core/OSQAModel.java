@@ -52,7 +52,6 @@ public sealed interface OSQAModel {
     }
     record OSQATestSpec(
             String uuid,
-            String title,
             String action,
             List<OSQAVerification> verifications
     ) implements OSQAModel {
@@ -60,7 +59,6 @@ public sealed interface OSQAModel {
             var uuidPattern = Pattern.compile("[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}");
             var error = new StringBuilder();
             if (uuid.isBlank() || !uuidPattern.matcher(uuid).find()) error.append("Invalid test spec uuid\n");
-            if (title.isBlank()) error.append("Test Spec title cannot be blank\n");
             if (action.isBlank()) error.append("Test spec action cannot be blank\n");
             if (verifications.isEmpty()) error.append("Test cases must be verified. Include verifications");
             if (!error.isEmpty()) throw new OSQAValidationException(error.toString());
@@ -72,7 +70,7 @@ public sealed interface OSQAModel {
     ) implements OSQAModel {
         public OSQAVerification {
             var error = new StringBuilder();
-            if (order < 1) error.append("Verification order must start with 1. < 1 order is not supported");
+            if (order < 0) error.append("Verification order must start with 0. < 0 order is not supported");
             if (description.isBlank()) error.append("Verification order description is required");
             if (!error.isEmpty()) throw new OSQAValidationException(error.toString());
         }
