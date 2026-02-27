@@ -41,6 +41,7 @@ public class AppConfigTest {
     private Path testSpecFile;
     @BeforeEach
     public void setUp() throws IOException {
+        deleteAppDataFolder();
         prepareModuleFile();
         var filePath = Paths.get(TEST_CASE_SPEC_FILE);
         testSpecFile = Files.createFile(filePath);
@@ -148,6 +149,9 @@ public class AppConfigTest {
     }
     @AfterEach
     public void tearDown() throws IOException {
+        deleteAppDataFolder();
+    }
+    private static void deleteAppDataFolder() throws IOException {
         var directory = Paths.get("data");
         if (Files.exists(directory)){
             Files.walk(directory)
@@ -161,6 +165,7 @@ public class AppConfigTest {
                     });
         }
     }
+
     private final String modulesJson = """
             [
               {
