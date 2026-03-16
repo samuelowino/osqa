@@ -15,9 +15,8 @@ package com.owino.core;
  * You should have received a copy of the GNU General Public License
  * along with OSQA.  If not, see <https://www.gnu.org/licenses/>.
  */
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.*;
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.io.IOException;
@@ -25,24 +24,22 @@ import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.nio.file.StandardOpenOption;
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
-
-import com.owino.core.OSQAModel.OSQAFeature;
 import tools.jackson.databind.ObjectMapper;
+import com.owino.core.OSQAModel.OSQAFeature;
 import com.owino.core.OSQAModel.OSQATestCase;
-import com.owino.core.OSQAModel.OSQAProduct;
 import com.owino.core.OSQAModel.OSQATestSpec;
 import com.owino.core.OSQAModel.OSQAVerification;
 public class OSQAConfig {
-    public static final String MODULE_FILE = "data/features.json";
+    public static final String OSQA_DB = "osqa_db";
+    public static final String MODULE_FILE = "data" + File.separator + "features.json";
     public static final String MODULE_DIR = "data";
     public static Result<Void> loadFeaturesListFile(){
         try {
-            Path envFile = Paths.get(MODULE_DIR + "/" + "env.properties");
+            Path envFile = Paths.get(MODULE_DIR + File.separator + "env.properties");
             if (Files.notExists(envFile)){
                 var dir = Paths.get(MODULE_DIR);
                 if (Files.notExists(dir)) Files.createDirectory(dir);
-                envFile = Files.createFile(Paths.get("data" + "/" + "env.properties"));
+                envFile = Files.createFile(Paths.get("data" + File.separator + "env.properties"));
                 Files.writeString(envFile,"features-file = " + OSQAConfig.MODULE_FILE);
             }
             return Result.success(null);
@@ -66,7 +63,6 @@ public class OSQAConfig {
             var testSpec = new ObjectMapper().readValue(json,OSQATestSpec.class);
             return Result.success(testSpec);
         } catch (IOException error){
-            error.printStackTrace();
             IO.println("failed to load test case spec from file " + testCase.specFile() + " Cause " + error.getLocalizedMessage());
             return Result.failure(error.getLocalizedMessage());
         }
@@ -78,7 +74,7 @@ public class OSQAConfig {
     public static Result<Void> writeSpecFile(Path appDataDir, OSQATestSpec specification, String specFile) {
         try {
             var nameBuilder = new StringBuilder(appDataDir.toUri().getPath());
-            nameBuilder.append("/");
+            nameBuilder.append(File.separator);
             nameBuilder.append(specFile);
             var path = Paths.get(nameBuilder.toString());
             Files.writeString(path, new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(specification));
@@ -92,7 +88,7 @@ public class OSQAConfig {
         try {
             var prefix = "feature";
             var nameBuilder = new StringBuilder(appDataDir.toUri().getPath());
-            nameBuilder.append("/");
+            nameBuilder.append(File.separator);
             nameBuilder.append(prefix);
             nameBuilder.append(feature.name().replaceAll(" ",""));
             nameBuilder.append(timestampedName(LocalDateTime.now(),"json"));
@@ -176,5 +172,47 @@ public class OSQAConfig {
         var total = (double) testSpec.verifications().size();
         var progress = (long) ((completedCount / total) * 100.0);
         return Result.success(progress);
+    }
+    public static Result<String> envProfile(){
+        try(var inputStream = OSQAConfig.class.getClassLoader().getResourceAsStream("env.properties")){
+            var properties = new Properties();
+            properties.load(inputStream);
+            var profile = properties.getProperty("profile");
+            return Result.success(profile);
+        } catch (IOException ex){
+            return Result.failure("Failed to load env profile: " + ex.getLocalizedMessage());
+        }
+    }
+    public static Result<Path> resolveBinDir(){
+        var envProfileResult = envProfile();
+        if (envProfileResult instanceof Result.Failure<String> (Throwable error)){
+            return Result.failure(error.getLocalizedMessage());
+        } else if (envProfileResult instanceof Result.Success<String> (String activeProfile)) {
+            if (activeProfile.equalsIgnoreCase("prod")){
+                var userHome = System.getProperty("user.home");
+                String bin = userHome + File.separator + "Documents" + File.separator + "bin";
+                IO.println("bin: " + bin);
+                var binFolder = new File(bin);
+                if (!binFolder.exists()) binFolder.mkdir();
+                if (binFolder.exists()) return Result.success(binFolder.toPath());
+                else return Result.failure("Failed to create app data dir");
+            } else {
+                var currentDir = System.getProperty("user.dir");
+                var binFolder = new File(currentDir,"data");
+                if (!binFolder.exists()) binFolder.mkdir();
+                if (binFolder.exists()) return Result.success(binFolder.toPath());
+                else return Result.failure("Failed to create app data dir");
+            }
+        } else return Result.failure("Failed to resolve bin dir");
+    }
+    public static Result<Void> appInit() {
+        var binPathResult = resolveBinDir();
+        return switch (binPathResult){
+            case Result.Success<Path> (Path binPath) -> {
+                if (!Files.exists(binPath)) yield Result.failure("Failed to create OSQA system dir");
+                yield Result.success(null);
+            }
+            case Result.Failure<Path> (Throwable error) -> Result.failure(error.getLocalizedMessage());
+        };
     }
 }

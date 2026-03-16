@@ -20,6 +20,8 @@ buildNumber.properties
 .DS_Store
 *.tmp
 data/
+bin/
 settings_db
 products_db
+data:env.properties
 README.md.bak

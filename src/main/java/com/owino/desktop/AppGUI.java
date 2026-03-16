@@ -16,9 +16,13 @@ package com.owino.desktop;
  * along with OSQA.  If not, see <https://www.gnu.org/licenses/>.
  */
 import atlantafx.base.theme.PrimerDark;
+import com.owino.core.OSQAConfig;
+import com.owino.core.Result;
 import com.owino.desktop.dashboard.DashboardView;
 import com.owino.desktop.dashboard.AppToolbar;
 import javafx.application.Application;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -41,6 +45,24 @@ public class AppGUI extends Application {
         stage.setMinWidth(1200);
         stage.setTitle("OSQA");
         stage.setFullScreen(false);
+        stage.setOnShown(_ -> {
+            switch(OSQAConfig.appInit()){
+                case Result.Success<Void> _ -> IO.println("OSQA init was successful!");
+                case Result.Failure<Void> error -> {
+                    var alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setContentText(
+                        """
+                        Failed to initialize application.
+                        Internal system failure
+                        %s
+                        """.formatted(error.error().getLocalizedMessage()));
+                    alert.getButtonTypes().add(ButtonType.CLOSE);
+                    if(alert.showAndWait().isPresent()){
+                        System.exit(0);
+                    }
+                }
+            }
+        });
         stage.show();
     }
     private void setTheme() {

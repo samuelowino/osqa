@@ -15,10 +15,10 @@ package com.owino.core;
  * You should have received a copy of the GNU General Public License
  * along with OSQA.  If not, see <https://www.gnu.org/licenses/>.
  */
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.UUID;
+import java.util.Scanner;
+import java.util.ArrayList;
 import com.owino.core.OSQAModel.OSQAFeature;
 import com.owino.core.OSQAModel.OSQATestCase;
 import com.owino.core.OSQAModel.OSQATestSpec;

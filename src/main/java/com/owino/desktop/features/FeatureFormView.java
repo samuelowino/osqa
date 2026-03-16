@@ -15,6 +15,7 @@ package com.owino.desktop.features;
  * You should have received a copy of the GNU General Public License
  * along with OSQA.  If not, see <https://www.gnu.org/licenses/>.
  */
+import java.io.File;
 import java.util.List;
 import java.util.UUID;
 import java.util.Optional;
@@ -105,7 +106,7 @@ public class FeatureFormView extends ScrollPane {
             var testCaseTitle = "testcase";
             var appDir = selectedProduct.projectDir();
             var specFile = testCaseTitle + OSQAConfig.timestampedName(LocalDateTime.now(),"json");
-            var filePath = appDir.toAbsolutePath().toString().concat("/").concat(specFile);
+            var filePath = appDir.toAbsolutePath().toString().concat(File.separator).concat(specFile);
             var testCase = new OSQATestCase(UUID.randomUUID().toString(),testCaseTitle,filePath);
             var specification = new OSQATestSpec(UUID.randomUUID().toString(),userActionField.getText(),verifications);
             OSQAConfig.writeSpecFile(appDir,specification,specFile);

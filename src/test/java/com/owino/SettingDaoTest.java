@@ -15,17 +15,17 @@ package com.owino;
  * You should have received a copy of the GNU General Public License
  * along with OSQA.  If not, see <https://www.gnu.org/licenses/>.
  */
-import com.owino.core.OSQAConfig;
-import com.owino.core.Result;
-import com.owino.desktop.settings.SettingDao;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import com.owino.core.Result;
+import com.owino.core.OSQAConfig;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import com.owino.desktop.settings.SettingDao;
 import static org.assertj.core.api.Assertions.assertThat;
 public class SettingDaoTest {
     @Test
@@ -60,6 +60,6 @@ public class SettingDaoTest {
     }
     @AfterEach
     public void tearDown() throws IOException {
-        Files.deleteIfExists(Paths.get(SettingDao.SETTING_DB_NAME));
+        Files.deleteIfExists(Paths.get(OSQAConfig.OSQA_DB));
     }
 }

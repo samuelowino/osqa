@@ -15,21 +15,21 @@ package com.owino;
  * You should have received a copy of the GNU General Public License
  * along with OSQA.  If not, see <https://www.gnu.org/licenses/>.
  */
-import com.owino.core.Result;
+import java.io.File;
+import java.util.UUID;
+import java.util.List;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
+import com.owino.core.Result;
 import java.time.LocalDateTime;
 import com.owino.core.OSQAConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import com.owino.core.OSQAModel.OSQAProduct;
 import com.owino.core.OSQAModel.OSQAFeature;
 import com.owino.core.OSQAModel.OSQATestCase;
 import com.owino.core.OSQAModel.OSQATestSpec;
@@ -200,7 +200,7 @@ public class AppConfigTest {
         var timestamp = LocalDateTime.of(2000,11,21,10,55,30);
         var specFile = OSQAConfig.timestampedName(timestamp,"json");
         var appDir = Paths.get(OSQAConfig.MODULE_DIR);
-        var filePath = appDir.toAbsolutePath().toString().concat("/").concat(specFile);
+        var filePath = appDir.toAbsolutePath().toString().concat(File.separator).concat(specFile);
         var testCase = new OSQATestCase(uuid,"Test Case",filePath);
         var result = OSQAConfig.writeSpecFile(appDir,specification,specFile);
         IO.println(result);
@@ -236,7 +236,7 @@ public class AppConfigTest {
         var timestamp = LocalDateTime.of(2000,11,21,10,55,30);
         var specFile = OSQAConfig.timestampedName(timestamp,"json");
         var appDir = Paths.get(OSQAConfig.MODULE_DIR);
-        var filePath = appDir.toAbsolutePath().toString().concat("/").concat(specFile);
+        var filePath = appDir.toAbsolutePath().toString().concat(File.separator).concat(specFile);
         var testCase = new OSQATestCase(uuid,"Test Case",filePath);
         var result = OSQAConfig.writeSpecFile(appDir,specification,specFile);
         IO.println(result);
@@ -278,7 +278,7 @@ public class AppConfigTest {
         var timestamp = LocalDateTime.of(2000,11,21,10,55,30);
         var specFile = OSQAConfig.timestampedName(timestamp,"json");
         var appDir = Paths.get(OSQAConfig.MODULE_DIR);
-        var filePath = appDir.toAbsolutePath().toString().concat("/").concat(specFile);
+        var filePath = appDir.toAbsolutePath().toString().concat(File.separator).concat(specFile);
         var testCase = new OSQATestCase(uuid,"Test Case",filePath);
         var result = OSQAConfig.writeSpecFile(appDir,specification,specFile);
         IO.println(result);
@@ -322,7 +322,7 @@ public class AppConfigTest {
         var specFile = OSQAConfig.timestampedName(timestamp,"json");
         var result = OSQAConfig.writeSpecFile(Paths.get(OSQAConfig.MODULE_DIR),specification,specFile);
         assertThat(result instanceof Result.Success<Void>).isTrue();
-        var testCase = new OSQATestCase("b37c79fd-a803-4c83-953d-1240af36960a","Test Case",OSQAConfig.MODULE_DIR + "/" + specFile);
+        var testCase = new OSQATestCase("b37c79fd-a803-4c83-953d-1240af36960a","Test Case",OSQAConfig.MODULE_DIR + File.separator + specFile);
         var feature = new OSQAFeature(
                 "9f8fcf88-fb9e-4b62-88f0-30a77b2883a3",
                 "e18b9af0-f984-4dd3-9174-782b2c70033a",
@@ -336,6 +336,21 @@ public class AppConfigTest {
             assertThat(progress).isEqualTo(expectedCompletion);
         }
         Files.deleteIfExists(Paths.get(specFile));
+    }
+    @Test
+    public void shouldInitializeOSQATest(){
+        var result = OSQAConfig.appInit();
+        assertThat(result).isInstanceOf(Result.Success.class);
+    }
+    @Test
+    public void shouldLoadEnvProfileTest(){
+        var result = OSQAConfig.envProfile();
+        assertThat(result).isInstanceOf(Result.Success.class);
+        if (result instanceof Result.Success<String> (String profile)){
+            assertThat(profile).isNotNull();
+            assertThat(profile).isNotBlank();
+            IO.println("Active Profile:" + profile);
+        }
     }
     @AfterEach
     public void tearDown() throws IOException {

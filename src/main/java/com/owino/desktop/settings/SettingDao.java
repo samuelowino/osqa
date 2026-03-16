@@ -15,6 +15,7 @@ package com.owino.desktop.settings;
  * You should have received a copy of the GNU General Public License
  * along with OSQA.  If not, see <https://www.gnu.org/licenses/>.
  */
+import com.owino.core.OSQAConfig;
 import com.owino.core.Result;
 import java.io.File;
 import java.nio.file.Path;
@@ -24,11 +25,10 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.UUID;
 public class SettingDao {
-    public static final String SETTING_DB_NAME = "settings_db";
     private static final String APP_DIR_SETTING_KEY = "app_dir_key";
     public static Result<Connection> connection(){
         try {
-            var connection = DriverManager.getConnection("jdbc:sqlite:" + SETTING_DB_NAME);
+            var connection = DriverManager.getConnection("jdbc:sqlite:" + OSQAConfig.OSQA_DB);
             return Result.success(connection);
         } catch (SQLException exception){
             return Result.failure("Failed to open con to sqlite settings: " + exception.getLocalizedMessage());

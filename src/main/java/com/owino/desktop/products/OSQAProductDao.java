@@ -15,6 +15,8 @@ package com.owino.desktop.products;
  * You should have received a copy of the GNU General Public License
  * along with OSQA.  If not, see <https://www.gnu.org/licenses/>.
  */
+import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.ArrayList;
 import java.nio.file.Paths;
@@ -22,15 +24,26 @@ import java.sql.Connection;
 import com.owino.core.Result;
 import java.sql.SQLException;
 import java.sql.DriverManager;
+import com.owino.core.OSQAConfig;
 import com.owino.core.OSQAModel.OSQAProduct;
 public class OSQAProductDao {
-    public static final String PRODUCTS_DB_NAME = "products_db";
     public static Result<Connection> connection(){
         try {
-            var connection = DriverManager.getConnection("jdbc:sqlite:" + PRODUCTS_DB_NAME);
-            return Result.success(connection);
+            var binDirResult = OSQAConfig.resolveBinDir();
+            if (binDirResult instanceof Result.Failure<Path>(Throwable error)){
+                return Result.failure(error.getLocalizedMessage());
+            }
+            if (binDirResult instanceof Result.Success<Path>(Path binDirPath)){
+                var sqliteUrl = "jdbc:sqlite:" + binDirPath.toAbsolutePath() + File.separator + OSQAConfig.OSQA_DB;
+                IO.println(sqliteUrl);
+                var connection = DriverManager.getConnection(sqliteUrl);
+                return Result.success(connection);
+            }
+            return Result.failure("Failed to open sqlite connection");
         } catch (SQLException exception){
-            return Result.failure("Failed to open con to sqlite products db: " + exception.getLocalizedMessage());
+            var error = "Failed to open con to sqlite products db: " + exception.getLocalizedMessage();
+            IO.println(error);
+            return Result.failure(error);
         }
     }
     public static Result<Void> saveProduct(OSQAProduct product){

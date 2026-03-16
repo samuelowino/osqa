@@ -15,6 +15,7 @@ package com.owino;
  * You should have received a copy of the GNU General Public License
  * along with OSQA.  If not, see <https://www.gnu.org/licenses/>.
  */
+import java.io.File;
 import java.util.List;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -78,6 +79,6 @@ public class OSQAProductDaoTest {
     }
     @AfterEach
     public void tearDown() throws IOException {
-        Files.deleteIfExists(Paths.get(OSQAProductDao.PRODUCTS_DB_NAME));
+        Files.deleteIfExists(Paths.get(OSQAConfig.MODULE_DIR + File.separator + OSQAConfig.OSQA_DB));
     }
 }
