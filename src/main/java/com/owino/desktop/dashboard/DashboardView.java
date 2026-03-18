@@ -77,7 +77,7 @@ public class DashboardView extends SplitPane {
     @Subscribe
     public void openProductFormEvent(OpenProductFormEvent event){
         getItems().removeLast();
-        getItems().add(new ProductFormView(stage));
+        getItems().add(new ProductFormView(stage,event.product(),event.isEditMode()));
         setDividerPositions(0.05f);
     }
     @Subscribe

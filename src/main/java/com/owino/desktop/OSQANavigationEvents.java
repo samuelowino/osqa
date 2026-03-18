@@ -30,6 +30,8 @@ public sealed interface OSQANavigationEvents {
     record ToggleShowVerificationButtonEvent(boolean show) implements OSQANavigationEvents {}
     record ShowVerificationFormEvent() implements OSQANavigationEvents {}
     record ResetVerificationsEvent() implements  OSQANavigationEvents {}
-    record OpenProductFormEvent() implements  OSQANavigationEvents {}
+    record OpenProductFormEvent(boolean isEditMode,OSQAProduct product) implements  OSQANavigationEvents {
+        public OpenProductFormEvent(){this(false, null);}
+    }
     record OpenProductsListEvent() implements  OSQANavigationEvents {}
 }

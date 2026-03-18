@@ -16,14 +16,12 @@ package com.owino.desktop.features;
  * along with OSQA.  If not, see <https://www.gnu.org/licenses/>.
  */
 import java.util.*;
-
-import com.owino.core.OSQAModel;
 import com.owino.core.Result;
+import javafx.scene.layout.*;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.paint.Color;
 import com.owino.core.OSQAConfig;
 import javafx.application.Platform;
 import org.greenrobot.eventbus.EventBus;

@@ -105,6 +105,7 @@ public class ProductsListView extends VBox{
                         }
 
                     });
+                    editButton.setOnAction(_ -> EventBus.getDefault().post(new OpenProductFormEvent(true,product)));
                     setGraphic(container);
                 }
             }

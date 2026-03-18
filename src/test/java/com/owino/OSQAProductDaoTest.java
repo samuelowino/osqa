@@ -102,6 +102,35 @@ public class OSQAProductDaoTest {
         var deleteResult = OSQAProductDao.delete(product);
         assertThat(deleteResult).isInstanceOf(Result.Success.class);
     }
+    @Test
+    public void shouldUpdateProductTest() throws IOException {
+        var projectDir = Paths.get(OSQAConfig.MODULE_DIR);
+        if (!Files.exists(projectDir))
+            Files.createDirectory(projectDir);
+        var product = new OSQAProduct(
+                "a76b4d46-e7df-43ea-afec-221b899ae527",
+                "OSQA Desktop",
+                "OSX",
+                projectDir);
+        var result = OSQAProductDao.saveProduct(product);
+        assertThat(result).isInstanceOf(Result.Success.class);
+        var updatedProduct = new OSQAProduct(
+                "a76b4d46-e7df-43ea-afec-221b899ae527",
+                "OSQA Desktop V2",
+                "Windows x86_64",
+                projectDir);
+        var updateResult = OSQAProductDao.updateProduct(updatedProduct);
+        assertThat(updateResult).isInstanceOf(Result.Success.class);
+        var listProductsResult = OSQAProductDao.listProducts();
+        assertThat(listProductsResult).isInstanceOf(Result.Success.class);
+        if (listProductsResult instanceof Result.Success<List<OSQAProduct>>(List<OSQAProduct> updatedProducts)){
+            var updated = updatedProducts.getFirst();
+            assertThat(updated).isNotNull();
+            assertThat(updated.uuid()).isEqualTo(updatedProduct.uuid());
+            assertThat(updated.name()).isEqualTo(updatedProduct.name());
+            assertThat(updated.target()).isEqualTo(updatedProduct.target());
+        }
+    }
     @AfterEach
     public void tearDown() throws IOException {
         Files.deleteIfExists(Paths.get(OSQAConfig.MODULE_DIR + File.separator + OSQAConfig.OSQA_DB));

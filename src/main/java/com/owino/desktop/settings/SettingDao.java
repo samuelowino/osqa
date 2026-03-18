@@ -28,10 +28,20 @@ public class SettingDao {
     private static final String APP_DIR_SETTING_KEY = "app_dir_key";
     public static Result<Connection> connection(){
         try {
-            var connection = DriverManager.getConnection("jdbc:sqlite:" + OSQAConfig.OSQA_DB);
-            return Result.success(connection);
+            var binDirResult = OSQAConfig.resolveBinDir();
+            if (binDirResult instanceof Result.Failure<Path>(Throwable error)){
+                return Result.failure(error.getLocalizedMessage());
+            }
+            if (binDirResult instanceof Result.Success<Path>(Path binDirPath)){
+                var sqliteUrl = "jdbc:sqlite:" + binDirPath.toAbsolutePath() + File.separator + OSQAConfig.OSQA_DB;
+                var connection = DriverManager.getConnection(sqliteUrl);
+                return Result.success(connection);
+            }
+            return Result.failure("Failed to open sqlite connection");
         } catch (SQLException exception){
-            return Result.failure("Failed to open con to sqlite settings: " + exception.getLocalizedMessage());
+            var error = "Failed to open con to sqlite products db: " + exception.getLocalizedMessage();
+            IO.println(error);
+            return Result.failure(error);
         }
     }
     public static Result<Void> setAppDataDir(File path){

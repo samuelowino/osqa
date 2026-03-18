@@ -16,13 +16,11 @@ package com.owino.desktop.products;
  * along with OSQA.  If not, see <https://www.gnu.org/licenses/>.
  */
 import java.io.File;
-import java.nio.file.Path;
 import java.util.List;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.nio.file.Paths;
 import java.sql.Connection;
-
-import com.owino.core.OSQAModel;
 import com.owino.core.Result;
 import java.sql.SQLException;
 import java.sql.DriverManager;
@@ -37,7 +35,6 @@ public class OSQAProductDao {
             }
             if (binDirResult instanceof Result.Success<Path>(Path binDirPath)){
                 var sqliteUrl = "jdbc:sqlite:" + binDirPath.toAbsolutePath() + File.separator + OSQAConfig.OSQA_DB;
-                IO.println(sqliteUrl);
                 var connection = DriverManager.getConnection(sqliteUrl);
                 return Result.success(connection);
             }
@@ -66,6 +63,27 @@ public class OSQAProductDao {
             return Result.success(null);
         } catch (SQLException error){
             return Result.failure("Failed to save product: " + error.getLocalizedMessage());
+        }
+    }
+    public static Result<Void> updateProduct(OSQAProduct product){
+        try {
+            var updateSql = """
+                UPDATE Products
+                SET name = ?, target = ?, projectDir = ?
+                WHERE
+                uuid = ?
+                """;
+            if (!(connection() instanceof Result.Success<Connection>(Connection connection))){
+                return Result.failure("Failed to open database connection");
+            }
+            var updateStatement = connection.prepareStatement(updateSql);
+            updateStatement.setString(1,product.name());
+            updateStatement.setString(2,product.target());
+            updateStatement.setString(3,product.projectDir().toAbsolutePath().toString());
+            updateStatement.setString(4,product.uuid());
+            return updateStatement.executeUpdate() == 1 ? Result.success(null) : Result.failure("Failed to update product, database mismatch");
+        } catch (SQLException failure){
+            return Result.failure(failure.getLocalizedMessage());
         }
     }
     public static Result<List<OSQAProduct>> listProducts(){

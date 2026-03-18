@@ -36,17 +36,25 @@ public class ProductFormView extends VBox {
     private final Insets MARGIN = new Insets(12,6,12,22);
     private final Insets FIELD_MARGIN = new Insets(6,6,6,6);
     private TextField nameField = new TextField();
-    public ProductFormView(Stage window){
+    private OSQAProduct product;
+    public ProductFormView(Stage window, OSQAProduct editModeProduct, boolean isEditMode){
+        this.product = editModeProduct;
         var formTitle = new Label("Create new product");
         var nameLabel = new Label("Product Name");
         var targetLabel = new Label("Deployment Target");
         var targetPicker = new ComboBox<String>();
         var projectDirButton = new Button("Set Project Dir");
-        var saveButton = new Button("Save");
+        var saveButton = new Button(isEditMode ? "Apply Changes" : "Save");
         var selectedDirLabel = new Label();
         targetPicker.getItems().addAll("iOS","Android","macOS","Windows","Linux");
         targetPicker.setEditable(true);
         saveButton.setMinWidth(300);
+        if (isEditMode){
+            nameField.setText(product.name());
+            targetPicker.getSelectionModel().select(editModeProduct.target());
+            selectedDirLabel.setText(product.projectDir().toAbsolutePath().toString());
+            projectDir = product.projectDir();
+        }
         var nameContainer = new HBox();
         var targetContainer = new HBox();
         formTitle.setFont(Font.font(22));
@@ -91,19 +99,19 @@ public class ProductFormView extends VBox {
             if (nameField.getText().isBlank()){
                 var alert = new Alert(Alert.AlertType.ERROR);
                 alert.setContentText("Missing project name");
-                alert.show();
+                alert.showAndWait();
                 return;
             }
-            if (targetPicker.getValue().isBlank()){
+            if (targetPicker.getValue() == null || targetPicker.getValue().isBlank()){
                 var alert = new Alert(Alert.AlertType.ERROR);
                 alert.setContentText("Select deployment target");
-                alert.show();
+                alert.showAndWait();
                 return;
             }
             if (projectDir != null) {
-                var product = new OSQAProduct(UUID.randomUUID().toString(), nameField.getText(), targetPicker.getValue(), projectDir);
-                var saveResult = OSQAProductDao.saveProduct(product);
-                switch (saveResult){
+                product = new OSQAProduct(isEditMode ? product.uuid() : UUID.randomUUID().toString(), nameField.getText(), targetPicker.getValue(), projectDir);
+                var saveOrUpdateResult = isEditMode ? OSQAProductDao.updateProduct(product): OSQAProductDao.saveProduct(product);
+                switch (saveOrUpdateResult){
                     case Result.Success<Void> _ -> {
                         var alert = new Alert(Alert.AlertType.INFORMATION);
                         alert.setContentText("Product has been saved successfully");
@@ -117,7 +125,7 @@ public class ProductFormView extends VBox {
                                 Failed to save product.
                                 %s
                                 """.formatted(failure.error().getLocalizedMessage()));
-                        alert.show();
+                        alert.showAndWait();
                     }
                 }
             } else {
@@ -126,7 +134,7 @@ public class ProductFormView extends VBox {
                                 Missing project dir.
                                 All OSQA output files will be written to the project directory or your preferred destination folder.
                                 """);
-                alert.show();
+                alert.showAndWait();
             }
         });
     }
