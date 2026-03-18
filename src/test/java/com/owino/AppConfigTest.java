@@ -18,14 +18,12 @@ package com.owino;
 import java.io.File;
 import java.util.UUID;
 import java.util.List;
+import java.nio.file.Path;
+import java.util.Optional;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
-import java.util.Optional;
-
-import com.owino.core.OSQAModel;
 import com.owino.core.Result;
 import java.time.LocalDateTime;
 import com.owino.core.OSQAConfig;
@@ -432,6 +430,44 @@ public class AppConfigTest {
         var result = OSQAConfig.migrateLegacyFeatures(product);
         assertThat(result).isInstanceOf(Result.Success.class);
     }
+    @Test
+    public void shouldDeleteVerificationTest(){
+        var verification1 = new OSQAVerification("bcdf11b5-9a5e-4702-b19d-82bbb2f9a0d0",1,"On Device B, the task is marked complete and a new instance appears with the correct future date.");
+        var verification2 = new OSQAVerification("a76b4d46-e7df-43ea-afec-221b899ae527",2,"On Device A, after a sync/refresh, the original task is marked complete and the new instance appears with the correct future date.");
+        var expectedTestSpec = new OSQATestSpec(
+                "a06e2598-bed3-4393-b6a2-9645b6bfa294",
+                "On Device B, mark the 'Team Sync' task as complete.",
+                List.of(verification1,verification2));
+        var testCase = new OSQATestCase(
+                "47196d64-56f8-4ad3-b96e-24acbc907af7",
+                "Task Completion Sync",
+                TEST_CASE_SPEC_FILE);
+        Result<OSQATestSpec> result = OSQAConfig.loadTestCaseSpec(testCase);
+        IO.println(result);
+        assertThat(result instanceof Result.Success<OSQATestSpec>).isTrue();
+        OSQATestSpec actualTestSpec = ((Result.Success<OSQATestSpec>) result).value();
+        assertThat(actualTestSpec).isNotNull();
+        assertThat(actualTestSpec.action()).isEqualTo(expectedTestSpec.action());
+        assertThat(actualTestSpec.verifications()).isNotEmpty();
+        assertThat(actualTestSpec.verifications().size()).isEqualTo(expectedTestSpec.verifications().size());
+        assertThat(actualTestSpec.verifications().getFirst().order()).isEqualTo(1);
+        assertThat(actualTestSpec.verifications().getFirst().description()).isEqualTo("On Device B, the task is marked complete and a new instance appears with the correct future date.");
+        assertThat(actualTestSpec.verifications().getLast().order()).isEqualTo(2);
+        assertThat(actualTestSpec.verifications().getLast().description()).isEqualTo("On Device A, after a sync/refresh, the original task is marked complete and the new instance appears with the correct future date.");
+        var verificationDeleteResult = OSQAConfig.deleteVerification(actualTestSpec,testCase,verification1);
+        assertThat(verificationDeleteResult).isInstanceOf(Result.Success.class);
+        Result<OSQATestSpec> secondLoadResult = OSQAConfig.loadTestCaseSpec(testCase);
+        assertThat(secondLoadResult instanceof Result.Success<OSQATestSpec>).isTrue();
+        actualTestSpec = ((Result.Success<OSQATestSpec>) secondLoadResult).value();
+        assertThat(actualTestSpec).isNotNull();
+        assertThat(actualTestSpec.action()).isEqualTo(expectedTestSpec.action());
+        assertThat(actualTestSpec.verifications()).isNotEmpty();
+        assertThat(actualTestSpec.verifications().size()).isEqualTo(1);
+        assertThat(actualTestSpec.verifications().getFirst()).isNotNull();
+        assertThat(actualTestSpec.verifications().getFirst().description()).isEqualTo(verification2.description());
+        assertThat(actualTestSpec.verifications().getFirst().verificationStatus()).isEqualTo(verification2.verificationStatus());
+        assertThat(actualTestSpec.verifications().getFirst().uuid()).isEqualTo(verification2.uuid());
+    }
     @AfterEach
     public void tearDown() throws IOException {
        deleteAppDataFolder();
@@ -491,7 +527,7 @@ public class AppConfigTest {
                 "action": "On Device B, mark the 'Team Sync' task as complete.",
                 "verifications": [
                   {
-                    "uuid": "a76b4d46-e7df-43ea-afec-221b899ae527",
+                    "uuid": "bcdf11b5-9a5e-4702-b19d-82bbb2f9a0d0",
                     "order": 1,
                     "description": "On Device B, the task is marked complete and a new instance appears with the correct future date.",
                     "verificationStatus": false

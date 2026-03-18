@@ -290,4 +290,8 @@ public class OSQAConfig {
         }
         return Result.failure("Failed to migrate legacy features. Failed to load legacy features");
     }
+    public static Result<Void> deleteVerification(OSQATestSpec testSpec,OSQATestCase parentTestCase, OSQAVerification verification) {
+        testSpec.verifications().removeIf(e -> e.uuid().equalsIgnoreCase(verification.uuid()));
+        return overwriteSpecFile(testSpec,parentTestCase);
+    }
 }

@@ -16,15 +16,15 @@ package com.owino.desktop.features;
  * along with OSQA.  If not, see <https://www.gnu.org/licenses/>.
  */
 import java.util.*;
+
+import com.owino.core.OSQAModel;
 import com.owino.core.Result;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Priority;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.layout.VBox;
 import com.owino.core.OSQAConfig;
-import javafx.scene.layout.Border;
 import javafx.application.Platform;
 import org.greenrobot.eventbus.EventBus;
 import javafx.collections.FXCollections;
@@ -81,12 +81,18 @@ public class FeatureDetailedView extends VBox {
                         setText("");
                         setGraphic(null);
                     } else {
+                        var buttonsContainer = new HBox(12);
                         var container = new VBox();
+                        var contentContainer = new BorderPane();
                         var verificationCheckbox = new CheckBox(verification.description());
+                        var deleteButton = new Button("Delete");
+                        var editButton = new Button("Edit");
+                        deleteButton.setTextFill(Color.RED);
+                        deleteButton.setFont(Font.font(12));
+                        editButton.setFont(Font.font(12));
+                        buttonsContainer.getChildren().addAll(deleteButton,editButton);
                         verificationCheckbox.setSelected(verification.verificationStatus());
                         verificationCheckbox.setWrapText(true);
-                        container.getChildren().add(verificationCheckbox);
-                        VBox.setMargin(verificationCheckbox,MARGIN);
                         verificationCheckbox.selectedProperty().addListener((observableValue,_,newVerifiedStatus) -> {
                             var updatedVerification = new OSQAVerification(verification.uuid(),verification.order(),verification.description(),newVerifiedStatus);
                             switch (OSQAConfig.updateVerificationStatus(testSpec,testCase,updatedVerification)){
@@ -104,6 +110,12 @@ public class FeatureDetailedView extends VBox {
                                 }
                             }
                         });
+                        deleteButton.setOnAction(_ -> deleteVerification(verification));
+                        contentContainer.setLeft(verificationCheckbox);
+                        contentContainer.setRight(buttonsContainer);
+                        container.getChildren().add(contentContainer);
+                        container.getChildren().add(new Separator());
+                        VBox.setMargin(contentContainer,new Insets(0,22,0,8));
                         setGraphic(container);
                     }
                 }
@@ -119,10 +131,23 @@ public class FeatureDetailedView extends VBox {
         VBox.setMargin(topMenu,MARGIN);
         VBox.setMargin(featureUsageInstructions,MARGIN);
         VBox.setMargin(featureDescriptionLabel,MARGIN);
+        VBox.setMargin(verificationsListView, new Insets(6,12,6,12));
         VBox.setVgrow(verificationsListView, Priority.ALWAYS);
         EventBus.getDefault().register(this);
         EventBus.getDefault().post(new ToggleShowVerificationButtonEvent(true));
         reloadVerifications();
+    }
+    private void deleteVerification(OSQAVerification verification) {
+        var confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmationAlert.setContentText("Are you sure you want to delete this verification?");
+        Optional<ButtonType> response = confirmationAlert.showAndWait();
+        response.ifPresent(buttonType -> {
+            if (buttonType == ButtonType.OK){
+                Result<Void> deleteResult = OSQAConfig.deleteVerification(testSpec,testCase,verification);
+                if (deleteResult instanceof Result.Success<Void>)
+                    reloadVerifications();
+            }
+        });
     }
     @Subscribe
     public void showNewVerificationFormEvent(ShowVerificationFormEvent event){

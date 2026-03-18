@@ -17,7 +17,6 @@ package com.owino.desktop.features;
  */
 import java.util.List;
 import java.util.Optional;
-
 import javafx.geometry.Pos;
 import com.owino.core.Result;
 import javafx.scene.layout.*;
