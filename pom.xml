@@ -162,6 +162,33 @@ See <https://www.gnu.org/licenses/> for more details.
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.pantsbuild</groupId>
+        <artifactId>jpackage-maven-plugin</artifactId>
+        <version>1.2.0</version>
+        <configuration>
+          <name>osqa</name>
+          <appVersion>${project.version}</appVersion>
+          <vendor>Samuel Owino</vendor>
+          <destination>${project.build.directory}/jpackage</destination>
+          <mainJar>osqa.jar</mainJar>
+          <mainClass>com.owino.desktop.AppGUI</mainClass>
+          <runtimeImage>${java.home}</runtimeImage>
+          <javaOptions>
+            <option>-Dfile.encoding=UTF-8</option>
+            <option>-Xmx2g</option>
+          </javaOptions>
+          <winDirChooser>true</winDirChooser>
+          <winShortcut>true</winShortcut>
+          <winMenu>true</winMenu>
+          <linuxShortcut>true</linuxShortcut>
+          <linuxMenuGroup>Development</linuxMenuGroup>
+          <macAppName>OSQA</macAppName>
+          <macPackageIdentifier>com.owino.osqa</macPackageIdentifier>
+          <macPackageSigningPrefix>com.owino</macPackageSigningPrefix>
+          <macAppStore>false</macAppStore>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 </project>
