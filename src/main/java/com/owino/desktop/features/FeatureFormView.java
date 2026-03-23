@@ -344,7 +344,6 @@ public class FeatureFormView extends ScrollPane {
             IO.println(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(feature));
             var successAlert = new Alert(Alert.AlertType.INFORMATION);
             successAlert.setContentText("Feature created successfully!");
-            successAlert.getButtonTypes().add(ButtonType.OK);
             if (successAlert.showAndWait().isPresent()){
                 successAlert.close();
                 EventBus.getDefault().post(new OSQANavigationEvents.OpenDashboardEvent());
@@ -352,7 +351,6 @@ public class FeatureFormView extends ScrollPane {
         } else {
             var errorAlert = new Alert(Alert.AlertType.ERROR);
             errorAlert.setContentText("Failed to create feature!");
-            errorAlert.getButtonTypes().add(ButtonType.OK);
             errorAlert.show();
         }
     }
