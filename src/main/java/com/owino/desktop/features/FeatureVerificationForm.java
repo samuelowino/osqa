@@ -52,5 +52,7 @@ public class FeatureVerificationForm extends Dialog<String> {
             }
             return null;
         });
+        ((Button) getDialogPane().lookupButton(okButtonType)).setOnAction(e -> close());
+        ((Button) getDialogPane().lookupButton(ButtonType.CANCEL)).setOnAction(e -> close());
     }
 }
