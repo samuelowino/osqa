@@ -38,6 +38,7 @@ import com.owino.desktop.OSQANavigationEvents.ResetVerificationsEvent;
 import com.owino.desktop.OSQANavigationEvents.OpenFeaturesListViewEvent;
 import com.owino.desktop.OSQANavigationEvents.ShowVerificationFormEvent;
 import com.owino.desktop.OSQANavigationEvents.ToggleShowVerificationButtonEvent;
+import com.owino.desktop.OSQANavigationEvents.OpenFeatureFormEvent;
 public class FeatureDetailedView extends VBox {
     public static final Insets MARGIN = new Insets(8,22,8,22);
     private final ObservableList<OSQAVerification> observableVerificationsList = FXCollections.observableArrayList();
@@ -50,6 +51,8 @@ public class FeatureDetailedView extends VBox {
         var topMenu = new BorderPane();
         var featureTitleLabel = new Label();
         var backButton = new Button("Back");
+        var editButton = new Button("Edit");
+        var actionButtonsContainer = new HBox(12, editButton, backButton);
         var featureDetailsSection = new VBox();
         var verificationsSection = new VBox();
         var featureDescriptionLabel = new Label();
@@ -57,7 +60,7 @@ public class FeatureDetailedView extends VBox {
         featureTitleLabel.setText(this.feature.name());
         featureDescriptionLabel.setText(this.feature.description());
         featureDescriptionLabel.setWrapText(true);
-        topMenu.setRight(backButton);
+        topMenu.setRight(actionButtonsContainer);
         topMenu.setLeft(featureTitleLabel);
         featureTitleLabel.setStyle(CSS.TITLE_LABEL);
         var testCases = this.feature.testCases();
@@ -124,6 +127,7 @@ public class FeatureDetailedView extends VBox {
             verificationsListView.setBorder(Border.EMPTY);
         }
         backButton.setOnAction(_ -> EventBus.getDefault().post(new OpenFeaturesListViewEvent(product)));
+        editButton.setOnAction(_ -> EventBus.getDefault().post(new OpenFeatureFormEvent(this.feature, true)));
         getChildren().add(topMenu);
         featureDetailsSection.getChildren().add(featureDescriptionLabel);
         featureDetailsSection.getChildren().add(featureUsageInstructions);
