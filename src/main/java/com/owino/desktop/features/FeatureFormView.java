@@ -313,8 +313,8 @@ public class FeatureFormView extends ScrollPane {
             if (successAlert.showAndWait().isPresent()){
                 successAlert.close();
                 EventBus.getDefault().post(
-    new OSQANavigationEvents.OpenFeaturesListViewEvent(selectedProduct)
-);
+                        new OSQANavigationEvents.OpenFeaturesListViewEvent(selectedProduct)
+                );
             }
         } else {
             var errorAlert = new Alert(Alert.AlertType.ERROR);
@@ -358,8 +358,8 @@ public class FeatureFormView extends ScrollPane {
             if (successAlert.showAndWait().isPresent()){
                 successAlert.close();
                 EventBus.getDefault().post(
-    new OSQANavigationEvents.OpenFeaturesListViewEvent(selectedProduct)
-);
+                        new OSQANavigationEvents.OpenFeaturesListViewEvent(selectedProduct)
+                );
             }
         } else {
             var errorAlert = new Alert(Alert.AlertType.ERROR);

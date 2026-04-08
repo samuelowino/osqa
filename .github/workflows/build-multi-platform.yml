@@ -108,8 +108,9 @@ jobs:
       shell: bash
       run: |
         mkdir -p jpackage-input
-        cp target/osqa.jar jpackage-input/
-        cp -r target/lib jpackage-input/ || true
+        # Fat jar built by maven-shade-plugin (artifactId-version.jar)
+        FAT_JAR=$(ls target/osqa-*.jar | grep -v original | head -1)
+        cp "$FAT_JAR" jpackage-input/osqa.jar
 
     - name: Generate native package
       shell: bash
@@ -124,7 +125,7 @@ jobs:
           --license-file "${{ github.workspace }}/LICENSE" \
           --input jpackage-input \
           --main-jar osqa.jar \
-          --main-class com.owino.desktop.AppGUI \
+          --main-class com.owino.desktop.Launcher \
           --dest target/jpackage \
           --java-options '-Xmx2g' \
           --java-options '-Dfile.encoding=UTF-8'

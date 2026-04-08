@@ -94,18 +94,35 @@ OSQA is not persistent, data is only collected and maintained during a QA sessio
 ---
 
 ## How to run the app
-> Build from source
 
-### Clone the project
+### Prerequisites
+- Java 25 or later
+
+### Option 1: Run the fat jar
+Download the latest `osqa-1.3.jar` from the releases page and run:
+```bash
+$ java -jar osqa-1.3.jar
+```
+The fat jar bundles all dependencies including JavaFX for Windows, Linux, and Mac — only Java is required.
+
+### Option 2: Build from source
 ```bash 
 $ git clone git@github.com:samuelowino/osqa.git
+$ cd osqa
+mvn clean install
 ```
 
-### Add an OSQA Test Feature Data Source in /resources/env.properties
+#### Add an OSQA Test Feature Data Source in /resources/env.properties
 
-### Navigate to project directory; build and run jar file
 ```bash
-$ cd osqa; mvn clean install ; cd target; java -jar osqa-1.0.jar
+$ mvn clean package -DskipTests
+$ java -jar target/osqa-1.3.jar
+```
+OR
+
+```bash
+chmod +x gui.sh
+./gui.sh
 ```
 
 
