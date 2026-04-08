@@ -109,16 +109,11 @@ The fat jar bundles all dependencies including JavaFX for Windows, Linux, and Ma
 ```bash 
 $ git clone git@github.com:samuelowino/osqa.git
 $ cd osqa
-mvn clean install
-```
-
-#### Add an OSQA Test Feature Data Source in /resources/env.properties
-
-```bash
-$ mvn clean package -DskipTests
+$ mvn clean package
 $ java -jar target/osqa-1.3.jar
 ```
-OR
+
+### OR just execute ./gui.sh
 
 ```bash
 chmod +x gui.sh

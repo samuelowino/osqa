@@ -4,7 +4,7 @@
   "name" : "Create new feature",
   "description" : "Feature supports creating new features from the JavaFX form",
   "priority" : "Critical",
-  "filePath" : "/Users/samuelowino/Documents/osqa/spec/featureCreatenewfeature2026-04-07-05-43-52.json",
+  "filePath" : "/Users/samuelowino/Documents/osqa/spec/featureCreatenewfeature2026-04-08-06-25-39.json",
   "testCases" : [ {
     "uuid" : "d360fe55-0efe-41de-a8e4-f90b9629ae54",
     "title" : "testcase",

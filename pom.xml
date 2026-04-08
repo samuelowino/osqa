@@ -181,7 +181,6 @@ See <https://www.gnu.org/licenses/> for more details.
       <scope>test</scope>
     </dependency>
   </dependencies>
-
   <build>
     <plugins>
       <plugin>
@@ -220,7 +219,6 @@ See <https://www.gnu.org/licenses/> for more details.
           </execution>
         </executions>
       </plugin>
-
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
@@ -240,8 +238,6 @@ See <https://www.gnu.org/licenses/> for more details.
           </execution>
         </executions>
       </plugin>
-
-      <!-- Maven Shade Plugin for creating fat jar -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
