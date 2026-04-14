@@ -57,7 +57,7 @@ public class FeatureFormView extends ScrollPane {
     private final VBox verificationListContainer = new VBox();
     private TextArea usageInstructionsTextArea;
     private TextField featureTitleTextField;
-    private TextField descriptionTextField;
+    private TextArea descriptionTextArea;
     private OSQAFeature feature;
     private boolean isEditMode;
     private OSQATestSpec testSpec;
@@ -85,7 +85,9 @@ public class FeatureFormView extends ScrollPane {
         var featureTitleText = new Text("Name");
         featureTitleTextField = new TextField();
         var descriptionText = new Text("Description");
-        descriptionTextField = new TextField();
+        descriptionTextArea = new TextArea();
+        descriptionTextArea.setWrapText(true);
+        descriptionTextArea.setPrefRowCount(4);
         usageInstructionsTextArea = new TextArea();
         var verificationsContainer = new BorderPane();
         var verificationLabel = new Text("Verifications:");
@@ -114,14 +116,14 @@ public class FeatureFormView extends ScrollPane {
         featureDetailsContainer.getChildren().add(featureTitleText);
         featureDetailsContainer.getChildren().add(featureTitleTextField);
         featureDetailsContainer.getChildren().add(descriptionText);
-        featureDetailsContainer.getChildren().add(descriptionTextField);
+        featureDetailsContainer.getChildren().add(descriptionTextArea);
         featureDetailsContainer.getChildren().add(new Separator());
         featureDetailsContainer.setStyle(CSS.FORM_SECTION_BORDER);
         VBox.setMargin(productTitleLabel,LABEL_MARGIN);
         VBox.setMargin(featureTitleText,LABEL_MARGIN);
         VBox.setMargin(featureTitleTextField,FIELD_MARGIN);
         VBox.setMargin(descriptionText,LABEL_MARGIN);
-        VBox.setMargin(descriptionTextField,FIELD_MARGIN);
+        VBox.setMargin(descriptionTextArea,FIELD_MARGIN);
         VBox.setMargin(productComboBox,FIELD_MARGIN);
         formContainer.getChildren().add(header);
         formContainer.getChildren().add(featureDetailsContainer);
@@ -170,7 +172,7 @@ public class FeatureFormView extends ScrollPane {
                 productComboBox.getSelectionModel().select(product);
             }
             featureTitleTextField.setText(feature.name());
-            descriptionTextField.setText(feature.description());
+            descriptionTextArea.setText(feature.description());
             testCases.addAll(feature.testCases());
             testCase = testCases.getFirst();
             var testCaseLoadResult = OSQAConfig.loadTestCaseSpec(testCase);
@@ -242,7 +244,7 @@ public class FeatureFormView extends ScrollPane {
                 formDataWarning.show();
                 return;
             }
-            if (descriptionTextField.getText().isBlank()){
+            if (descriptionTextArea.getText().isBlank()){
                 formDataWarning.setContentText("Feature description is required!");
                 formDataWarning.show();
                 return;
@@ -294,7 +296,7 @@ public class FeatureFormView extends ScrollPane {
     private void updateFeature() {
         var selectedProduct = productComboBox.getValue();
         var featureTitle = featureTitleTextField.getText();
-        var featureDescription = descriptionTextField.getText();
+        var featureDescription = descriptionTextArea.getText();
         testSpec = new OSQATestSpec(testSpec.uuid(), usageInstructionsTextArea.getText(), verificationsList);
         OSQAConfig.overwriteSpecFile(testSpec,testCase);
         feature = new OSQAFeature(
@@ -333,7 +335,7 @@ public class FeatureFormView extends ScrollPane {
         OSQAConfig.writeSpecFile(appDir,specification,specFile);
         testCases.add(testCase);
         var featureTitle = featureTitleTextField.getText();
-        var featureDescription = descriptionTextField.getText();
+        var featureDescription = descriptionTextArea.getText();
         var prefix = "feature";
         var fileNameBuilder = new StringBuilder(appDir.toUri().getPath());
         fileNameBuilder.append(File.separator);
