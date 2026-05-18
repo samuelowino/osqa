@@ -1,3 +1,3 @@
 #!/bin/bash
-mvn clean package
+mvn clean verify package
 java -jar target/osqa-1.3.jar

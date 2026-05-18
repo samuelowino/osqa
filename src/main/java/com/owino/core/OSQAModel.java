@@ -146,4 +146,59 @@ public sealed interface OSQAModel {
             if (!error.isEmpty()) throw new OSQAValidationException(error.toString());
         }
     }
+    record OSQAPaginatedResult<T>(
+           List<T> result,
+           int currentPage,
+           int pageSize,
+           long totalItems,
+           long totalPages,
+           boolean hasNext,
+           boolean hasPrevious,
+           int startIndex,
+           int endIndex
+    ) {
+        public static <E> OSQAPaginatedResult<E> paginatedResult(List<E> data, int page, int pageSize){
+            if (data.isEmpty()) return new OSQAPaginatedResult<>(data, page, pageSize, 0, 0, false, false, 0,0);
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 1;
+            int totalItems = data.size();
+            int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+            if (page > totalPages && totalPages > 0) page = totalPages;
+            int startIndex = (page - 1) * pageSize;
+            int endIndex = Math.min(startIndex + pageSize, totalItems);
+            var result = data.subList(startIndex, endIndex);
+            var hasNext = page < totalPages;
+            var hasPrevious = page > 1;
+            return new OSQAPaginatedResult<>(
+                    result,
+                    page,
+                    pageSize,
+                    totalItems,
+                    totalPages,
+                    hasNext,
+                    hasPrevious,
+                    startIndex,
+                    endIndex);
+        }
+    }
+    enum FeaturesSortOrder {
+        BY_NAME("By Feature Name"),
+        BY_VERIFICATION_PROGRESS("By Verification Progress");
+        private final String name;
+        FeaturesSortOrder(String label){
+            this.name = label;
+        }
+        public String getName(){
+            return this.name;
+        }
+        public static FeaturesSortOrder fromName(String name) {
+             if (name.contentEquals(BY_NAME.getName())) {
+                 return BY_NAME;
+             } else if (name.contentEquals(BY_VERIFICATION_PROGRESS.getName())) {
+                 return BY_VERIFICATION_PROGRESS;
+             } else {
+                 throw new AssertionError("Invalid sort order option " + name);
+             }
+        }
+    }
 }

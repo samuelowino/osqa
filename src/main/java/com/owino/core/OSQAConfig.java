@@ -190,6 +190,21 @@ public class OSQAConfig {
         var progress = (long) ((completedCount / total) * 100.0);
         return Result.success(progress);
     }
+    public static Long verificationProgress(OSQAFeature feature) {
+        var testCase = feature.testCases().getFirst();
+        Optional<OSQATestSpec> optionalTestSpec = switch (OSQAConfig.loadTestCaseSpec(testCase)){
+            case Result.Success<OSQATestSpec> (OSQATestSpec spec) -> Optional.of(spec);
+            case Result.Failure<OSQATestSpec> failure -> {
+                IO.println(failure.error().getLocalizedMessage());
+                yield Optional.empty();
+            }
+        };
+        if (optionalTestSpec.isEmpty()) return 0L;
+        var testSpec = optionalTestSpec.get();
+        var completedCount = (double) testSpec.verifications().stream().filter(OSQAVerification::verificationStatus).count();
+        var total = (double) testSpec.verifications().size();
+        return (long) ((completedCount / total) * 100.0);
+    }
     public static Result<String> envProfile(){
         try(var inputStream = OSQAConfig.class.getClassLoader().getResourceAsStream("env.properties")){
             var properties = new Properties();

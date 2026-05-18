@@ -27,6 +27,7 @@ import javafx.scene.control.*;
 import com.owino.core.OSQAConfig;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import org.greenrobot.eventbus.EventBus;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -34,13 +35,39 @@ import com.owino.core.OSQAModel.OSQAFeature;
 import com.owino.core.OSQAModel.OSQAProduct;
 import com.owino.desktop.OSQANavigationEvents.OpenFeatureFormEvent;
 import com.owino.desktop.OSQANavigationEvents.OpenFeatureDetailedViewEvent;
+import com.owino.core.OSQAModel.OSQAPaginatedResult;
+import java.util.Comparator;
+import java.util.stream.Stream;
+import static com.owino.core.OSQAModel.FeaturesSortOrder;
 public class FeatureListingsView extends VBox {
     private final OSQAProduct product;
     private final ObservableList<OSQAFeature> listViewContents = FXCollections.observableArrayList();
+    private final Text pageRangeLabel = new Text();
+    private final Text totalItemsCountView = new Text();
+    private final Button prevPageButton = new Button("Previous");
+    private final Button nextPageButton = new Button("Next");
+    private int currentPage = 1;
+    private long totalPages = 1;
+    private FeaturesSortOrder sortOrder = FeaturesSortOrder.BY_NAME;
     public FeatureListingsView(OSQAProduct osqaProduct){
         this.product = osqaProduct;
+        var featuresListViewHeaderView = new BorderPane();
         var titleLabel = new Label("Product Features: (" + product.name() + ")");
         titleLabel.setFont(Font.font(21));
+        var sortOrderComboBox = new ComboBox<String>();
+        sortOrderComboBox.getItems()
+                .addAll(
+                        Stream.of(FeaturesSortOrder.values())
+                                .map(FeaturesSortOrder::getName)
+                                .toList()
+                );
+        var selectedItemProperty = sortOrderComboBox.getSelectionModel().selectedItemProperty();
+        selectedItemProperty.addListener((_,_,selectedSortOrder) -> {
+            sortOrder = FeaturesSortOrder.fromName(selectedSortOrder);
+            initFeatures();
+        });
+        featuresListViewHeaderView.setLeft(titleLabel);
+        featuresListViewHeaderView.setRight(sortOrderComboBox);
         var featuresListView = new ListView<>(listViewContents);
         featuresListView.setCellFactory(_ -> new ListCell<>(){
             @Override
@@ -84,8 +111,8 @@ public class FeatureListingsView extends VBox {
                     HBox.setMargin(editButton, new Insets(0,8,0,8));
                     HBox.setMargin(deleteButton, new Insets(0,8,0,8));
                     featureItemContainer.getChildren().addAll(topSection, bottomSection);
-                    VBox.setMargin(topSection,new Insets(6,12,0,12));
-                    VBox.setMargin(bottomSection,new Insets(0,12,8,12));
+                    VBox.setMargin(topSection,new Insets(12));
+                    VBox.setMargin(bottomSection,new Insets(12));
                     var blueBackground = new Background(new BackgroundFill(Color.BLUE,new CornerRadii(12), new Insets(3,0,3,0)));
                     var blackBackground = new Background(new BackgroundFill(Color.BLACK,new CornerRadii(12), new Insets(3,0,3,0)));
                     featureItemContainer.setOnMouseEntered(_ -> featureItemContainer.setBackground(blueBackground));
@@ -105,12 +132,37 @@ public class FeatureListingsView extends VBox {
                 EventBus.getDefault().post(new OpenFeatureDetailedViewEvent(selectedFeature,product));
             }
         });
-        getChildren().add(titleLabel);
+        var pageSelectionView = new BorderPane();
+        var pageSummaryView = new HBox(12);
+        var pageButtonsView = new HBox();
+        var showingLabelView = new Text("Showing");
+        var ofLabelView = new Text("of");
+        pageSummaryView.getChildren().add(showingLabelView);
+        pageSummaryView.getChildren().add(pageRangeLabel);
+        pageSummaryView.getChildren().add(ofLabelView);
+        pageSummaryView.getChildren().add(totalItemsCountView);
+        nextPageButton.setOnAction(_ -> {
+            currentPage += 1;
+            initFeatures();
+        });
+        prevPageButton.setOnAction(_ -> {
+           currentPage -= 1;
+           initFeatures();
+        });
+        pageButtonsView.getChildren().add(prevPageButton);
+        pageButtonsView.getChildren().add(nextPageButton);
+        HBox.setMargin(prevPageButton, new Insets(0,12,0,12));
+        HBox.setMargin(nextPageButton, new Insets(0,12,0,12));
+        pageSelectionView.setLeft(pageSummaryView);
+        pageSelectionView.setRight(pageButtonsView);
+        getChildren().add(featuresListViewHeaderView);
         getChildren().add(featuresListView);
-        setMargin(titleLabel,new Insets(12,12,12,12));
-        setMargin(featuresListView,new Insets(12,12,12,12));
+        getChildren().add(pageSelectionView);
+        setMargin(featuresListViewHeaderView,new Insets(12));
+        setMargin(featuresListView,new Insets(12));
+        setMargin(pageSelectionView, new Insets(12));
         VBox.setVgrow(featuresListView,Priority.ALWAYS);
-        initFeatures();
+        sortOrderComboBox.getSelectionModel().select(0);
     }
     private void initFeatures(){
         var appDir = product.projectDir();
@@ -132,8 +184,23 @@ public class FeatureListingsView extends VBox {
             VBox.setMargin(noDataViewLabel, new Insets(12));
             VBox.setMargin(addFeatureButton, new Insets(12));
         } else {
+            var pageSize = 5;
+            if (currentPage > totalPages) return;
+            var sorted = switch (sortOrder) {
+                case FeaturesSortOrder.BY_NAME -> features.stream().
+                        sorted(Comparator.comparing(OSQAFeature::name)).toList();
+                case FeaturesSortOrder.BY_VERIFICATION_PROGRESS -> features.stream().
+                        sorted(Comparator.comparing(OSQAConfig::verificationProgress, Long::compareTo))
+                        .toList();
+            };
+            var paged = OSQAPaginatedResult.paginatedResult(sorted,currentPage,pageSize);
+            totalPages = paged.totalPages();
+            nextPageButton.setDisable(!paged.hasNext());
+            prevPageButton.setDisable(!paged.hasPrevious());
+            pageRangeLabel.setText(currentPage + " - " + totalPages);
+            totalItemsCountView.setText(String.valueOf(paged.totalItems()));
             listViewContents.clear();
-            listViewContents.addAll(features);
+            listViewContents.addAll(paged.result());
         }
     }
     private void deleteFeature(OSQAFeature feature) {
