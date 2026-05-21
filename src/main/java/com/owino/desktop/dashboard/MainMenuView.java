@@ -20,6 +20,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import javafx.stage.Stage;
 import org.greenrobot.eventbus.EventBus;
 import com.owino.desktop.OSQANavigationEvents.OpenDashboardEvent;
 import com.owino.desktop.OSQANavigationEvents.OpenProductsListEvent;
@@ -30,7 +31,9 @@ public class MainMenuView extends VBox {
     private Label dashboardLabel;
     private Label productsLabel;
     private Label featuresLabel;
-    public MainMenuView(){
+    private final Stage stage;
+    public MainMenuView(Stage window){
+        this.stage = window;
         setMinWidth(200);
         setMaxWidth(300);
         initView();
@@ -52,7 +55,7 @@ public class MainMenuView extends VBox {
             highlightEffect(productsLabel);
             unhighlightEffect(featuresLabel);
             EventBus.getDefault().post(new ToggleShowVerificationButtonEvent(false));
-            EventBus.getDefault().post(new OpenProductsListEvent());
+            EventBus.getDefault().post(new OpenProductsListEvent(stage));
         });
         featuresLabel.setOnMouseClicked(_ -> {
             highlightEffect(featuresLabel);
@@ -60,7 +63,7 @@ public class MainMenuView extends VBox {
             EventBus.getDefault().post(new ToggleShowVerificationButtonEvent(false));
             var productSelectDialog = new ProductSelectionDialog();
             var result = productSelectDialog.showAndWait();
-            result.ifPresent(selectedProduct -> EventBus.getDefault().post(new OpenFeaturesListViewEvent(selectedProduct)));
+            result.ifPresent(selectedProduct -> EventBus.getDefault().post(new OpenFeaturesListViewEvent(selectedProduct, stage)));
         });
         getChildren().add(dashboardLabel);
         getChildren().add(productsLabel);

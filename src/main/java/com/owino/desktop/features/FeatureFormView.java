@@ -37,6 +37,7 @@ import com.owino.core.OSQAConfig;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 import org.greenrobot.eventbus.EventBus;
 import com.owino.core.OSQAModel.OSQAFeature;
 import tools.jackson.databind.ObjectMapper;
@@ -59,12 +60,14 @@ public class FeatureFormView extends ScrollPane {
     private TextField featureTitleTextField;
     private TextArea descriptionTextArea;
     private OSQAFeature feature;
+    private final Stage stage;
     private boolean isEditMode;
     private OSQATestSpec testSpec;
     private OSQATestCase testCase;
-    public FeatureFormView(OSQAFeature editModeFeature,boolean isEditMode){
+    public FeatureFormView(OSQAFeature editModeFeature,boolean isEditMode, Stage window){
         this.isEditMode = isEditMode;
         this.feature = editModeFeature;
+        this.stage = window;
         var featureForm = initFeatureForm();
         setContent(featureForm);
         setFitToWidth(true);
@@ -101,7 +104,7 @@ public class FeatureFormView extends ScrollPane {
             var selectedProduct = productComboBox.getValue();
             if (selectedProduct != null) {
                 // If a product is selected (like in Edit mode), go back to its feature list
-                EventBus.getDefault().post(new OSQANavigationEvents.OpenFeaturesListViewEvent(selectedProduct));
+                EventBus.getDefault().post(new OSQANavigationEvents.OpenFeaturesListViewEvent(selectedProduct, stage));
             } else {
                 // Fallback to the dashboard if no product was selected yet in Create mode
                 EventBus.getDefault().post(new OSQANavigationEvents.OpenDashboardEvent());
@@ -315,7 +318,7 @@ public class FeatureFormView extends ScrollPane {
             if (successAlert.showAndWait().isPresent()){
                 successAlert.close();
                 EventBus.getDefault().post(
-                        new OSQANavigationEvents.OpenFeaturesListViewEvent(selectedProduct)
+                        new OSQANavigationEvents.OpenFeaturesListViewEvent(selectedProduct,stage)
                 );
             }
         } else {
@@ -360,7 +363,7 @@ public class FeatureFormView extends ScrollPane {
             if (successAlert.showAndWait().isPresent()){
                 successAlert.close();
                 EventBus.getDefault().post(
-                        new OSQANavigationEvents.OpenFeaturesListViewEvent(selectedProduct)
+                        new OSQANavigationEvents.OpenFeaturesListViewEvent(selectedProduct,stage)
                 );
             }
         } else {

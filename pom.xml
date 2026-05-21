@@ -169,6 +169,11 @@ See <https://www.gnu.org/licenses/> for more details.
       <version>2.0.0</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi-ooxml</artifactId>
+      <version>5.3.0</version>
+    </dependency>
+    <dependency>
       <groupId>org.testfx</groupId>
       <artifactId>testfx-core</artifactId>
       <version>4.0.18</version>
@@ -254,9 +259,7 @@ See <https://www.gnu.org/licenses/> for more details.
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <mainClass>com.owino.desktop.Launcher</mainClass>
                 </transformer>
-                <!-- Merge services files -->
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                <!-- Merge JavaFX modules configuration -->
                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                   <resource>META-INF/spring.handlers</resource>
                 </transformer>
@@ -265,7 +268,6 @@ See <https://www.gnu.org/licenses/> for more details.
                 </transformer>
               </transformers>
               <filters>
-                <!-- Exclude signature files -->
                 <filter>
                   <artifact>*:*</artifact>
                   <excludes>

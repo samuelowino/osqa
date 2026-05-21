@@ -25,6 +25,7 @@ import javafx.scene.text.Font;
 import javafx.scene.paint.Color;
 import com.owino.core.OSQAConfig;
 import javafx.application.Platform;
+import javafx.stage.Stage;
 import org.greenrobot.eventbus.EventBus;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -46,8 +47,10 @@ public class FeatureDetailedView extends VBox {
     private final OSQAFeature feature;
     private OSQATestSpec testSpec;
     private final OSQATestCase testCase;
-    public FeatureDetailedView(OSQAFeature feature, OSQAProduct product){
+    private final Stage stage;
+    public FeatureDetailedView(OSQAFeature feature, OSQAProduct product, Stage window){
         this.feature = feature;
+        this.stage = window;
         var topMenu = new BorderPane();
         var featureTitleLabel = new Label();
         var backButton = new Button("Back");
@@ -126,8 +129,8 @@ public class FeatureDetailedView extends VBox {
             });
             verificationsListView.setBorder(Border.EMPTY);
         }
-        backButton.setOnAction(_ -> EventBus.getDefault().post(new OpenFeaturesListViewEvent(product)));
-        editButton.setOnAction(_ -> EventBus.getDefault().post(new OpenFeatureFormEvent(this.feature, true)));
+        backButton.setOnAction(_ -> EventBus.getDefault().post(new OpenFeaturesListViewEvent(product, stage)));
+        editButton.setOnAction(_ -> EventBus.getDefault().post(new OpenFeatureFormEvent(this.feature, true, stage)));
         getChildren().add(topMenu);
         featureDetailsSection.getChildren().add(featureDescriptionLabel);
         featureDetailsSection.getChildren().add(featureUsageInstructions);

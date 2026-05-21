@@ -35,10 +35,12 @@ public class ProductFormView extends VBox {
     private Path projectDir;
     private final Insets MARGIN = new Insets(12,6,12,22);
     private final Insets FIELD_MARGIN = new Insets(6,6,6,6);
-    private TextField nameField = new TextField();
+    private final TextField nameField = new TextField();
     private OSQAProduct product;
+    private final Stage window;
     public ProductFormView(Stage window, OSQAProduct editModeProduct, boolean isEditMode){
         this.product = editModeProduct;
+        this.window = window;
         var formTitle = new Label("Create new product");
         var nameLabel = new Label("Product Name");
         var targetLabel = new Label("Deployment Target");
@@ -82,7 +84,7 @@ public class ProductFormView extends VBox {
         VBox.setMargin(saveButton,MARGIN);
         projectDirButton.setOnAction(_ -> {
             var directoryChooser = new DirectoryChooser();
-            directoryChooser.setTitle("Select Project Direction:");
+            directoryChooser.setTitle("Select Project Directory:");
             File selectedDir = directoryChooser.showDialog(window);
             if (selectedDir != null) {
                 if (Files.exists(selectedDir.toPath())){
@@ -116,7 +118,7 @@ public class ProductFormView extends VBox {
                         var alert = new Alert(Alert.AlertType.INFORMATION);
                         alert.setContentText("Product has been saved successfully");
                         if (alert.showAndWait().isPresent()){
-                            EventBus.getDefault().post(new OpenProductsListEvent());
+                            EventBus.getDefault().post(new OpenProductsListEvent(window));
                         }
                     }
                     case Result.Failure<Void> failure -> {

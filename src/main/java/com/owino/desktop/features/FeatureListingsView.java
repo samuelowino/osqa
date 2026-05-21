@@ -15,10 +15,12 @@ package com.owino.desktop.features;
  * You should have received a copy of the GNU General Public License
  * along with OSQA.  If not, see <https://www.gnu.org/licenses/>.
  */
+import java.io.File;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
-
-import com.owino.core.OSQAModel;
+import com.owino.core.OSQAVoid;
+import com.owino.reports.OSQAXSSFTestingReport;
 import javafx.geometry.Pos;
 import com.owino.core.Result;
 import javafx.scene.layout.*;
@@ -28,6 +30,8 @@ import com.owino.core.OSQAConfig;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
 import org.greenrobot.eventbus.EventBus;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -46,14 +50,24 @@ public class FeatureListingsView extends VBox {
     private final Text totalItemsCountView = new Text();
     private final Button prevPageButton = new Button("Previous");
     private final Button nextPageButton = new Button("Next");
+    private final Button testingFormsButton = new Button("Generate Testing Forms");
     private int currentPage = 1;
     private long totalPages = 1;
     private FeaturesSortOrder sortOrder = FeaturesSortOrder.BY_NAME;
-    public FeatureListingsView(OSQAProduct osqaProduct){
+    private final Stage window;
+    public FeatureListingsView(OSQAProduct osqaProduct, Stage window){
         this.product = osqaProduct;
+        this.window = window;
+        var productHeaderContainer = new BorderPane();
+        var productTitleLabel = new Label(product.name());
+        var actionButtonsContainer = new HBox(12);
+        productTitleLabel.setFont(Font.font(42));
+        actionButtonsContainer.getChildren().add(testingFormsButton);
+        productHeaderContainer.setLeft(productTitleLabel);
+        productHeaderContainer.setRight(actionButtonsContainer);
         var featuresListViewHeaderView = new BorderPane();
-        var titleLabel = new Label("Product Features: (" + product.name() + ")");
-        titleLabel.setFont(Font.font(21));
+        var featuresTitleLabel = new Label("Features Registry");
+        featuresTitleLabel.setFont(Font.font(32));
         var sortOrderComboBox = new ComboBox<String>();
         sortOrderComboBox.getItems()
                 .addAll(
@@ -66,7 +80,7 @@ public class FeatureListingsView extends VBox {
             sortOrder = FeaturesSortOrder.fromName(selectedSortOrder);
             initFeatures();
         });
-        featuresListViewHeaderView.setLeft(titleLabel);
+        featuresListViewHeaderView.setLeft(featuresTitleLabel);
         featuresListViewHeaderView.setRight(sortOrderComboBox);
         var featuresListView = new ListView<>(listViewContents);
         featuresListView.setCellFactory(_ -> new ListCell<>(){
@@ -100,7 +114,7 @@ public class FeatureListingsView extends VBox {
                         case Result.Failure<Long> failure -> IO.println("Failed to load verification progress: " + failure.error().getLocalizedMessage());
                     }
 
-                    nameLabel.setFont(Font.font(17));
+                    nameLabel.setFont(Font.font(22));
                     topSection.setLeft(nameLabel);
                     var descriptionLabel = new Label(feature.description());
                     descriptionLabel.setMaxWidth(700);
@@ -118,7 +132,7 @@ public class FeatureListingsView extends VBox {
                     featureItemContainer.setOnMouseEntered(_ -> featureItemContainer.setBackground(blueBackground));
                     featureItemContainer.setOnMouseExited(_ -> featureItemContainer.setBackground(blackBackground));
                     deleteButton.setOnAction(_ -> deleteFeature(feature));
-                    editButton.setOnAction(_ -> EventBus.getDefault().post(new OpenFeatureFormEvent(feature,true)));
+                    editButton.setOnAction(_ -> EventBus.getDefault().post(new OpenFeatureFormEvent(feature,true, window)));
                     setGraphic(featureItemContainer);
                 }
             }
@@ -155,14 +169,17 @@ public class FeatureListingsView extends VBox {
         HBox.setMargin(nextPageButton, new Insets(0,12,0,12));
         pageSelectionView.setLeft(pageSummaryView);
         pageSelectionView.setRight(pageButtonsView);
+        getChildren().add(productHeaderContainer);
         getChildren().add(featuresListViewHeaderView);
         getChildren().add(featuresListView);
         getChildren().add(pageSelectionView);
+        setMargin(productHeaderContainer,new Insets(12));
         setMargin(featuresListViewHeaderView,new Insets(12));
         setMargin(featuresListView,new Insets(12));
         setMargin(pageSelectionView, new Insets(12));
         VBox.setVgrow(featuresListView,Priority.ALWAYS);
         sortOrderComboBox.getSelectionModel().select(0);
+        testingFormsButton.setOnAction(_ -> handleGenerateTestingForms());
     }
     private void initFeatures(){
         var appDir = product.projectDir();
@@ -210,6 +227,34 @@ public class FeatureListingsView extends VBox {
         if (result.isPresent() && result.get() == ButtonType.OK){
             OSQAConfig.deleteFeature(feature);
             initFeatures();
+        }
+    }
+    private void handleGenerateTestingForms(){
+        var directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Select Testing Forms Destination Folder:");
+        File selectedDir = directoryChooser.showDialog(window);
+        if (selectedDir != null) {
+            if (Files.exists(selectedDir.toPath())){
+                var result = OSQAXSSFTestingReport.generateReport(selectedDir.toPath(), product);
+                switch (result) {
+                    case Result.Success<OSQAVoid> _ -> {
+                        var alert = new Alert(Alert.AlertType.INFORMATION);
+                        alert.setTitle("Success");
+                        alert.setContentText("Testing forms generated successfully!");
+                        alert.show();
+                    }
+                    case Result.Failure<OSQAVoid> failure -> {
+                        var alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Error");
+                        alert.setContentText("Failed to generate testing forms\n" + failure.error().getLocalizedMessage());
+                        alert.show();
+                    }
+                }
+            } else {
+                testingFormsButton.setTextFill(Color.RED);
+            }
+        } else {
+            testingFormsButton.setTextFill(Color.RED);
         }
     }
 }

@@ -27,6 +27,7 @@ import javafx.scene.text.Font;
 import javafx.scene.paint.Color;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.stage.Stage;
 import org.greenrobot.eventbus.EventBus;
 import javafx.collections.ObservableList;
 import com.owino.core.OSQAModel.OSQAProduct;
@@ -37,7 +38,9 @@ public class ProductsListView extends VBox{
     private final ObservableList<OSQAProduct> productObservableList = FXCollections.observableArrayList();
     private final VBox noDataContainer = new VBox();
     private ListView<OSQAProduct> productsListView;
-    public ProductsListView(){
+    private final Stage stage;
+    public ProductsListView(Stage window){
+        this.stage = window;
         initView();
         initProducts();
     }
@@ -111,7 +114,7 @@ public class ProductsListView extends VBox{
             }
         });
         productsListView.getSelectionModel().selectedItemProperty().addListener((_,_,selectedProduct) -> {
-            EventBus.getDefault().post(new OpenFeaturesListViewEvent(selectedProduct));
+            EventBus.getDefault().post(new OpenFeaturesListViewEvent(selectedProduct,  stage));
         });
         newProductButton.setOnAction(_ -> EventBus.getDefault().post(new OpenProductFormEvent()));
         productsListView.setBorder(Border.EMPTY);

@@ -40,7 +40,7 @@ public class DashboardView extends SplitPane {
         initView();
     }
     private void initView() {
-        getItems().add(new MainMenuView());
+        getItems().add(new MainMenuView(stage));
         getItems().add(new WelcomeView());
         setOrientation(Orientation.HORIZONTAL);
         setDividerPositions(0.05f);
@@ -58,20 +58,20 @@ public class DashboardView extends SplitPane {
     public void openFeatureFormEvent(OpenFeatureFormEvent event){
         Platform.runLater(() -> {
             getItems().removeLast();
-            getItems().add(new FeatureFormView(event.feature(),event.isEditMode()));
+            getItems().add(new FeatureFormView(event.feature(),event.isEditMode(), event.window()));
             setDividerPositions(0.05f);
         });
     }
     @Subscribe
     public void openFeatureDetailedViewEvent(OpenFeatureDetailedViewEvent event){
         getItems().removeLast();
-        getItems().add(new FeatureDetailedView(event.selectedFeature(),event.product()));
+        getItems().add(new FeatureDetailedView(event.selectedFeature(),event.product(), stage));
         setDividerPositions(0.05f);
     }
     @Subscribe
     public void openFeaturesListViewEvent(OpenFeaturesListViewEvent event){
         getItems().removeLast();
-        getItems().add(new FeatureListingsView(event.selectedProduct()));
+        getItems().add(new FeatureListingsView(event.selectedProduct(), event.window()));
         setDividerPositions(0.05f);
     }
     @Subscribe
@@ -83,7 +83,7 @@ public class DashboardView extends SplitPane {
     @Subscribe
     public void openProductsListEvent(OpenProductsListEvent event){
         getItems().removeLast();
-        getItems().add(new ProductsListView());
+        getItems().add(new ProductsListView(event.window()));
         setDividerPositions(0.05f);
     }
 }

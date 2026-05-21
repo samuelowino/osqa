@@ -94,6 +94,8 @@ public class OSQAConfig {
             return Result.failure("Failed to write features spec file:" +ex.getLocalizedMessage());
         }
     }
+    //TODO: Modify this function to load app the test specs and their verification steps
+    //TODO: alongside the feature: might mean OSQAFeature contain field for List<verification>
     public static Result<List<OSQAFeature>> listFeatures(Path featuresDir) {
         var folderExists = Files.exists(featuresDir);
         if (!folderExists) return Result.failure("Failed to list features, app dir does not exist");
