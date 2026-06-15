@@ -17,9 +17,10 @@ package com.owino.desktop.features;
  */
 import java.io.File;
 import java.nio.file.Files;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import com.owino.core.OSQAModel;
 import com.owino.core.OSQAVoid;
+import com.owino.desktop.STYLES;
 import com.owino.reports.OSQAXSSFTestingReport;
 import javafx.geometry.Pos;
 import com.owino.core.Result;
@@ -40,9 +41,9 @@ import com.owino.core.OSQAModel.OSQAProduct;
 import com.owino.desktop.OSQANavigationEvents.OpenFeatureFormEvent;
 import com.owino.desktop.OSQANavigationEvents.OpenFeatureDetailedViewEvent;
 import com.owino.core.OSQAModel.OSQAPaginatedResult;
-import java.util.Comparator;
 import java.util.stream.Stream;
 import static com.owino.core.OSQAModel.FeaturesSortOrder;
+import static com.owino.desktop.features.ChangeColor.ChangeColorPair;
 public class FeatureListingsView extends VBox {
     private final OSQAProduct product;
     private final ObservableList<OSQAFeature> listViewContents = FXCollections.observableArrayList();
@@ -55,6 +56,12 @@ public class FeatureListingsView extends VBox {
     private long totalPages = 1;
     private FeaturesSortOrder sortOrder = FeaturesSortOrder.BY_NAME;
     private final Stage window;
+    private Pane featuresCountCard;
+    private Pane passedVerificationsCard;
+    private Pane activeVerificationsCard;
+    private Pane systemStatusCard;
+    private Pane pendingVerificationsCard;
+    private HBox productStatusContainer = new HBox();
     public FeatureListingsView(OSQAProduct osqaProduct, Stage window){
         this.product = osqaProduct;
         this.window = window;
@@ -65,6 +72,7 @@ public class FeatureListingsView extends VBox {
         actionButtonsContainer.getChildren().add(testingFormsButton);
         productHeaderContainer.setLeft(productTitleLabel);
         productHeaderContainer.setRight(actionButtonsContainer);
+
         var featuresListViewHeaderView = new BorderPane();
         var featuresTitleLabel = new Label("Features Registry");
         featuresTitleLabel.setFont(Font.font(32));
@@ -104,7 +112,7 @@ public class FeatureListingsView extends VBox {
                     switch (OSQAConfig.calculateFeatureVerificationProgress(feature)){
                         case Result.Success<Long> (Long progress) -> {
                             var verificationStatusLabel = new Label(progress + "%");
-                            var verificationStatusBackground = new Background(new BackgroundFill(Color.GREEN, new CornerRadii(12),new Insets(12)));
+                            var verificationStatusBackground = new Background(new BackgroundFill(Color.GREEN, STYLES.CARDS_CORNER_RADIUS,new Insets(12)));
                             verificationStatusLabel.setTextFill(Color.WHITE);
                             verificationStatusLabel.setBackground(verificationStatusBackground);
                             verificationStatusLabel.setFont(Font.font(12));
@@ -127,10 +135,11 @@ public class FeatureListingsView extends VBox {
                     featureItemContainer.getChildren().addAll(topSection, bottomSection);
                     VBox.setMargin(topSection,new Insets(12));
                     VBox.setMargin(bottomSection,new Insets(12));
-                    var blueBackground = new Background(new BackgroundFill(Color.BLUE,new CornerRadii(12), new Insets(3,0,3,0)));
-                    var blackBackground = new Background(new BackgroundFill(Color.BLACK,new CornerRadii(12), new Insets(3,0,3,0)));
+                    var blueBackground = new Background(new BackgroundFill(Color.BLUE,STYLES.CARDS_CORNER_RADIUS, STYLES.CARDS_INTERNAL_MARGIN));
+                    var blackBackground = new Background(new BackgroundFill(Color.BLACK,STYLES.CARDS_CORNER_RADIUS, STYLES.CARDS_INTERNAL_MARGIN));
                     featureItemContainer.setOnMouseEntered(_ -> featureItemContainer.setBackground(blueBackground));
                     featureItemContainer.setOnMouseExited(_ -> featureItemContainer.setBackground(blackBackground));
+                    featureItemContainer.setBackground(blackBackground);
                     deleteButton.setOnAction(_ -> deleteFeature(feature));
                     editButton.setOnAction(_ -> EventBus.getDefault().post(new OpenFeatureFormEvent(feature,true, window)));
                     setGraphic(featureItemContainer);
@@ -170,6 +179,7 @@ public class FeatureListingsView extends VBox {
         pageSelectionView.setLeft(pageSummaryView);
         pageSelectionView.setRight(pageButtonsView);
         getChildren().add(productHeaderContainer);
+        getChildren().add(productStatusContainer);
         getChildren().add(featuresListViewHeaderView);
         getChildren().add(featuresListView);
         getChildren().add(pageSelectionView);
@@ -180,6 +190,7 @@ public class FeatureListingsView extends VBox {
         VBox.setVgrow(featuresListView,Priority.ALWAYS);
         sortOrderComboBox.getSelectionModel().select(0);
         testingFormsButton.setOnAction(_ -> handleGenerateTestingForms());
+        initProductStatusSummary();
     }
     private void initFeatures(){
         var appDir = product.projectDir();
@@ -256,5 +267,72 @@ public class FeatureListingsView extends VBox {
         } else {
             testingFormsButton.setTextFill(Color.RED);
         }
+    }
+    private void initProductStatusSummary() {
+        var listFeaturesResult = OSQAConfig.listFeatures(product.projectDir());
+        List<OSQAModel.OSQAVerification> verifications = new ArrayList<>();
+        if (listFeaturesResult instanceof Result.Success<List<OSQAFeature>> (var features)) {
+            for (OSQAFeature feature : features) {
+                for (OSQAModel.OSQATestCase testCase : feature.testCases()) {
+                    var loadTEstCaseResult = OSQAConfig.loadTestCaseSpec(testCase);
+                    if (loadTEstCaseResult instanceof Result.Success<OSQAModel.OSQATestSpec> (var testSpec)) {
+                        var verificationList = testSpec.verifications();
+                        verifications.addAll(verificationList);
+                        // TODO: Use spec file to load verifications
+                        // TODO: work on refining this work flow in the next stream
+                    }
+                }
+            }
+        }
+        var productStatus = OSQAConfig.productStatus(product.projectDir(),verifications);
+        var minimumVerificationProgress = 90;
+        var isStable = productStatus.systemStability() >= minimumVerificationProgress;
+        var colorPair = isStable ?
+                new ChangeColorPair(STYLES.OSQA_GREEN,STYLES.TRANSLUCENT_GREEN) :
+                new ChangeColorPair(STYLES.OSQA_RED, STYLES.LIGHT_TRANSLUCENT_RED);
+        var icon = isStable ? "upicon.png" : "horizontalline.png";
+        var featuresCountDetails = new ProductSummaryCard(
+                "Total Features",productStatus.featuresCount(),0,
+                icon, String.format(Locale.getDefault(),
+                "%d%% Verified",productStatus.systemStability()),
+                colorPair);
+        var activeVerifications = new ProductSummaryCard(
+                "Active Checks",productStatus.allVerifications(),0,
+                icon,
+                String.format(Locale.getDefault(),"%d Pending", productStatus.failedVerifications()),
+                colorPair);
+        var passedVerifications = new ProductSummaryCard(
+                "Passed Checks",productStatus.passedVerifications(),
+                0,
+                icon, isStable ? "Steady" : "Unstable",
+                colorPair);
+        var pendingVerifications = new ProductSummaryCard(
+                "Pending Checks",productStatus.failedVerifications(),
+                0,
+                "horizontalline.png", isStable ? "Almost Done" : "Mostly Unstable",
+                new ChangeColorPair(STYLES.OSQA_RED, STYLES.LIGHT_TRANSLUCENT_RED));
+        var systemStability = new ProductSummaryCard(
+                "System Stability",
+                productStatus.systemStability(),
+                0, icon,
+                isStable ? "All features normal" : "Unstable System",
+                colorPair, true);
+        featuresCountCard = ProductSummaryCard.summaryView(featuresCountDetails);
+        passedVerificationsCard = ProductSummaryCard.summaryView(passedVerifications);
+        systemStatusCard = ProductSummaryCard.summaryView(systemStability);
+        activeVerificationsCard = ProductSummaryCard.summaryView(activeVerifications);
+        pendingVerificationsCard = ProductSummaryCard.summaryView(pendingVerifications);
+        productStatusContainer.getChildren().removeAll();
+        productStatusContainer.getChildren().add(featuresCountCard);
+        productStatusContainer.getChildren().add(systemStatusCard);
+        productStatusContainer.getChildren().add(activeVerificationsCard);
+        productStatusContainer.getChildren().add(passedVerificationsCard);
+        productStatusContainer.getChildren().add(pendingVerificationsCard);
+
+        var summaryCardsMargin = new Insets(12);
+        HBox.setMargin(featuresCountCard, summaryCardsMargin);
+        HBox.setMargin(passedVerificationsCard, summaryCardsMargin);
+        HBox.setMargin(activeVerificationsCard, summaryCardsMargin);
+        HBox.setMargin(systemStatusCard, summaryCardsMargin);
     }
 }

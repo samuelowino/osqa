@@ -181,6 +181,13 @@ public sealed interface OSQAModel {
                     endIndex);
         }
     }
+    record ProductStatusReport(
+            int featuresCount,
+            int systemStability,
+            int passedVerifications,
+            int failedVerifications,
+            int allVerifications
+    ) implements OSQAModel{}
     enum FeaturesSortOrder {
         BY_NAME("By Feature Name"),
         BY_VERIFICATION_PROGRESS("By Verification Progress");

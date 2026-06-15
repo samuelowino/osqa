@@ -26,6 +26,7 @@ import com.owino.core.OSQAModel.OSQAProduct;
 import com.owino.core.OSQAModel.OSQAFeature;
 import com.owino.core.OSQAModel.OSQATestCase;
 import com.owino.core.OSQAModel.OSQATestSpec;
+import com.owino.core.OSQAModel.ProductStatusReport;
 import com.owino.desktop.products.OSQAProductDao;
 import com.owino.core.OSQAModel.OSQAVerification;
 import com.owino.core.OSQAModel.OSQAFeatureLegacy;
@@ -319,5 +320,28 @@ public class OSQAConfig {
         } catch (IOException ex){
             return Result.failure("Failed to write features spec file:" +ex.getLocalizedMessage());
         }
+    }
+    public static ProductStatusReport productStatus(
+            Path featuresDir,
+            List<OSQAVerification> verifications
+    ) {
+        var passedVerifications = (int) verifications.stream()
+                .filter(OSQAVerification::verificationStatus)
+                .count();
+        var failedVerifications = (int) verifications.stream()
+                .filter(check -> !check.verificationStatus())
+                .count();
+        var systemStability = (int) (((double) passedVerifications / (double) verifications.size()) * 100d);
+        var listResult = OSQAConfig.listFeatures(featuresDir);
+        var featuresCount = 0;
+        if (listResult instanceof Result.Success<List<OSQAFeature>> (var features)) {
+            featuresCount = features.size();
+        }
+        return new ProductStatusReport(
+                featuresCount,
+                systemStability,
+                passedVerifications,
+                failedVerifications,
+                verifications.size());
     }
 }

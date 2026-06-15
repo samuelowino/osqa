@@ -17,7 +17,7 @@ package com.owino.desktop.features;
  */
 import java.util.*;
 import com.owino.core.Result;
-import com.owino.desktop.CSS;
+import com.owino.desktop.STYLES;
 import javafx.scene.layout.*;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
@@ -65,7 +65,7 @@ public class FeatureDetailedView extends VBox {
         featureDescriptionLabel.setWrapText(true);
         topMenu.setRight(actionButtonsContainer);
         topMenu.setLeft(featureTitleLabel);
-        featureTitleLabel.setStyle(CSS.TITLE_LABEL);
+        featureTitleLabel.setStyle(STYLES.TITLE_LABEL);
         var testCases = this.feature.testCases();
         testCase = testCases.getFirst();
         Optional<OSQATestSpec> optionalTestSpect = switch (OSQAConfig.loadTestCaseSpec(testCase)){
@@ -134,11 +134,11 @@ public class FeatureDetailedView extends VBox {
         getChildren().add(topMenu);
         featureDetailsSection.getChildren().add(featureDescriptionLabel);
         featureDetailsSection.getChildren().add(featureUsageInstructions);
-        featureDetailsSection.setStyle(CSS.FORM_SECTION_BORDER);
+        featureDetailsSection.setStyle(STYLES.FORM_SECTION_BORDER);
         getChildren().add(featureDetailsSection);
         if (verificationsListView != null) {
             verificationsSection.getChildren().add(verificationsListView);
-            verificationsSection.setStyle(CSS.FORM_SECTION_BORDER);
+            verificationsSection.setStyle(STYLES.FORM_SECTION_BORDER);
             getChildren().add(verificationsSection);
             VBox.setMargin(verificationsSection,MARGIN);
         }

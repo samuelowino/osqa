@@ -23,7 +23,7 @@ import java.util.UUID;
 import java.util.Optional;
 import java.util.ArrayList;
 import com.owino.core.Result;
-import com.owino.desktop.CSS;
+import com.owino.desktop.STYLES;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -121,7 +121,7 @@ public class FeatureFormView extends ScrollPane {
         featureDetailsContainer.getChildren().add(descriptionText);
         featureDetailsContainer.getChildren().add(descriptionTextArea);
         featureDetailsContainer.getChildren().add(new Separator());
-        featureDetailsContainer.setStyle(CSS.FORM_SECTION_BORDER);
+        featureDetailsContainer.setStyle(STYLES.FORM_SECTION_BORDER);
         VBox.setMargin(productTitleLabel,LABEL_MARGIN);
         VBox.setMargin(featureTitleText,LABEL_MARGIN);
         VBox.setMargin(featureTitleTextField,FIELD_MARGIN);
@@ -149,7 +149,7 @@ public class FeatureFormView extends ScrollPane {
         BorderPane.setMargin(verificationLabel,FIELD_MARGIN);
         verificationLabel.setFont(FORM_LABEL_FONT);
         testCaseFormContainer.getChildren().add(verificationsContainer);
-        testCaseFormContainer.setStyle(CSS.FORM_SECTION_BORDER);
+        testCaseFormContainer.setStyle(STYLES.FORM_SECTION_BORDER);
         addVerificationButton.setOnAction(_ -> {
             Optional<String> inputResult = new FeatureVerificationForm(null,false).showAndWait();
             if (inputResult.isPresent()){

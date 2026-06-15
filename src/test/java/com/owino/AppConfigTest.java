@@ -16,17 +16,15 @@ package com.owino;
  * along with OSQA.  If not, see <https://www.gnu.org/licenses/>.
  */
 import java.io.File;
-import java.util.UUID;
-import java.util.List;
+import java.util.*;
 import java.nio.file.Path;
-import java.util.Optional;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Comparator;
 import com.owino.core.Result;
 import java.time.LocalDateTime;
 import com.owino.core.OSQAConfig;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +33,7 @@ import com.owino.core.OSQAModel.OSQAFeature;
 import com.owino.core.OSQAModel.OSQATestCase;
 import com.owino.core.OSQAModel.OSQATestSpec;
 import com.owino.core.OSQAModel.OSQAVerification;
+import com.owino.core.OSQAModel.ProductStatusReport;
 import tools.jackson.databind.exc.ValueInstantiationException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -509,6 +508,29 @@ public class AppConfigTest {
         if (loadTestSpecResult instanceof Result.Success<OSQATestSpec>(OSQATestSpec loadedTestSpec)){
             assertThat(loadedTestSpec).isNotNull();
         }
+    }
+    @RepeatedTest(10)
+    public void shouldGenerateProductStatusTest() {
+        var verification1 = new OSQAVerification(
+                UUID.randomUUID().toString(),
+                new Random().nextInt(1,10),
+                "Does the sign in button appear after a logout event?",
+                false
+        );
+        var verification2 = new OSQAVerification(
+                UUID.randomUUID().toString(),
+                new Random().nextInt(1,10),
+                "Is the email delevered after user clicks send?",
+                true
+        );
+        var verifications = List.of(verification1, verification2);
+        ProductStatusReport statusReport = OSQAConfig.productStatus(featuresFile, verifications);
+        assertThat(statusReport).isNotNull();
+        assertThat(statusReport.failedVerifications()).isEqualTo(1);
+        assertThat(statusReport.passedVerifications()).isEqualTo(1);
+        assertThat(statusReport.featuresCount()).isEqualTo(1);
+        assertThat(statusReport.systemStability()).isEqualTo(50);
+        assertThat(statusReport.allVerifications()).isEqualTo(2);
     }
     @AfterEach
     public void tearDown() throws IOException {
