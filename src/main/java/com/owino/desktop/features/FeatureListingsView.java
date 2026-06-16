@@ -18,18 +18,19 @@ package com.owino.desktop.features;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.*;
-import com.owino.core.OSQAModel;
-import com.owino.core.OSQAVoid;
+
+import com.owino.core.*;
 import com.owino.desktop.STYLES;
 import com.owino.reports.OSQAXSSFTestingReport;
 import javafx.geometry.Pos;
-import com.owino.core.Result;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
-import com.owino.core.OSQAConfig;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
@@ -49,8 +50,10 @@ public class FeatureListingsView extends VBox {
     private final ObservableList<OSQAFeature> listViewContents = FXCollections.observableArrayList();
     private final Text pageRangeLabel = new Text();
     private final Text totalItemsCountView = new Text();
-    private final Button prevPageButton = new Button("Previous");
-    private final Button nextPageButton = new Button("Next");
+    private final Label currentPageLabel = new Label();
+    private final Label totalPagesLabel = new Label();
+    private final Button prevPageButton = new Button();
+    private final Button nextPageButton = new Button();
     private final Button testingFormsButton = new Button("Generate Testing Forms");
     private int currentPage = 1;
     private long totalPages = 1;
@@ -155,29 +158,50 @@ public class FeatureListingsView extends VBox {
                 EventBus.getDefault().post(new OpenFeatureDetailedViewEvent(selectedFeature,product));
             }
         });
+
         var pageSelectionView = new BorderPane();
-        var pageSummaryView = new HBox(12);
-        var pageButtonsView = new HBox();
-        var showingLabelView = new Text("Showing");
-        var ofLabelView = new Text("of");
-        pageSummaryView.getChildren().add(showingLabelView);
-        pageSummaryView.getChildren().add(pageRangeLabel);
-        pageSummaryView.getChildren().add(ofLabelView);
-        pageSummaryView.getChildren().add(totalItemsCountView);
+        var pageStatusContainer = new HBox();
+        var nextIcon = new ImageView();
+        var nextIconLoadResult = UICommons.loadImage("chevronnext.png");
+        if (nextIconLoadResult instanceof Result.Success<Image> (var icon)) {
+            nextIcon.setFitWidth(22);
+            nextIcon.setFitHeight(22);
+            nextIcon.setImage(icon);
+        }
+        nextPageButton.setGraphic(nextIcon);
         nextPageButton.setOnAction(_ -> {
             currentPage += 1;
             initFeatures();
         });
+        var prevIcon = new ImageView();
+        var prevIconLoadResult = UICommons.loadImage("chevronback.png");
+        if (prevIconLoadResult instanceof Result.Success<Image> (var icon)) {
+            prevIcon.setFitHeight(22);
+            prevIcon.setFitWidth(22);
+            prevIcon.setImage(icon);
+        }
+        prevPageButton.setGraphic(prevIcon);
         prevPageButton.setOnAction(_ -> {
            currentPage -= 1;
            initFeatures();
         });
-        pageButtonsView.getChildren().add(prevPageButton);
-        pageButtonsView.getChildren().add(nextPageButton);
+        currentPageLabel.setText("1");
+        var ofPrefixLabel = new Label("of");
+        totalPagesLabel.setText("21");
+        currentPageLabel.setFont(Font.font("", FontWeight.MEDIUM,21));
+        totalPagesLabel.setFont(Font.font("", FontWeight.MEDIUM,21));
+        ofPrefixLabel.setFont(Font.font("", FontWeight.MEDIUM,21));
+        pageStatusContainer.getChildren().add(prevPageButton);
+        pageStatusContainer.getChildren().add(currentPageLabel);
+        pageStatusContainer.getChildren().add(ofPrefixLabel);
+        pageStatusContainer.getChildren().add(totalPagesLabel);
+        pageStatusContainer.getChildren().add(nextPageButton);
         HBox.setMargin(prevPageButton, new Insets(0,12,0,12));
         HBox.setMargin(nextPageButton, new Insets(0,12,0,12));
-        pageSelectionView.setLeft(pageSummaryView);
-        pageSelectionView.setRight(pageButtonsView);
+        HBox.setMargin(currentPageLabel, new Insets(6,12,0,12));
+        HBox.setMargin(ofPrefixLabel, new Insets(6,12,0,12));
+        HBox.setMargin(totalPagesLabel, new Insets(6,12,0,12));
+        pageSelectionView.setRight(pageStatusContainer);
         getChildren().add(productHeaderContainer);
         getChildren().add(productStatusContainer);
         getChildren().add(featuresListViewHeaderView);
@@ -226,6 +250,8 @@ public class FeatureListingsView extends VBox {
             nextPageButton.setDisable(!paged.hasNext());
             prevPageButton.setDisable(!paged.hasPrevious());
             pageRangeLabel.setText(currentPage + " - " + totalPages);
+            currentPageLabel.setText(String.valueOf(currentPage));
+            totalPagesLabel.setText(String.valueOf(paged.totalPages()));
             totalItemsCountView.setText(String.valueOf(paged.totalItems()));
             listViewContents.clear();
             listViewContents.addAll(paged.result());
