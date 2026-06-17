@@ -152,19 +152,9 @@ public class FeatureFormView extends ScrollPane {
         testCaseFormContainer.setStyle(STYLES.FORM_SECTION_BORDER);
         addVerificationButton.setOnAction(_ -> {
             Optional<String> inputResult = new FeatureVerificationForm(null,false).showAndWait();
-            if (inputResult.isPresent()){
+            if (inputResult.isPresent()) {
                 if (!inputResult.get().isBlank()){
                     verificationsList.add( new OSQAVerification(UUID.randomUUID().toString(),0,inputResult.get()));
-                    Alert successAlert = new Alert(Alert.AlertType.NONE);
-                    successAlert.setTitle("Success");
-                    successAlert.setContentText("""
-                            Verification step
-                            (%s)
-                            has been added successfully.
-                            This feature now has (%d) verification steps.
-                            """.formatted(inputResult.get(), verificationsList.size()));
-                    successAlert.getButtonTypes().add(ButtonType.OK);
-                    successAlert.show();
                 }
             }
         });
