@@ -36,7 +36,7 @@ public class AppGUI extends Application {
     public void start(Stage stage) {
         setTheme();
         var mainAppWindow = new VBox();
-        var toolbar = new AppToolbar();
+        var toolbar = new AppToolbar(stage);
         var dashboard = new DashboardView(stage);
         mainAppWindow.getChildren().add(toolbar);
         mainAppWindow.getChildren().add(new Separator());
