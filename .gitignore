@@ -27,3 +27,4 @@ data:env.properties
 README.md.bak
 *.properties
 src/main/resources/env.properties
+temp/

@@ -26,6 +26,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.control.Label;
 import javafx.scene.control.Button;
+import javafx.scene.Node;
 import javafx.application.Platform;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Popup;
@@ -96,13 +97,13 @@ public class AppToolbar extends BorderPane {
 	hintMenu.setAnchorLocation(WINDOW_TOP_RIGHT);
         hintMenu.getContent().add(tooltipLabel);
         addProductButton.setOnMouseEntered(_ -> {
-	    showTooltip("New Product"); 
+	    	showTooltip("New Product", addProductButton);
         });
         homeButton.setOnMouseEntered(_ -> {
-	    showTooltip("Open Dashboard"); 
+	    	showTooltip("Open Dashboard", homeButton);
         });
         addFeatureButton.setOnMouseEntered(_ -> {
-	    showTooltip("New Feature"); 
+	    	showTooltip("New Feature", addFeatureButton);
         });
         addProductButton.setOnMouseExited(_ -> hintMenu.hide());
         homeButton.setOnMouseExited(_ -> hintMenu.hide());
@@ -156,9 +157,13 @@ public class AppToolbar extends BorderPane {
             }
         });
     }
-    public void showTooltip(String msg) {
+    public void showTooltip(String msg, Node node) {
 	tooltipLabel.setText(msg);
-        hintMenu.show(window);
+	var lb = node.getBoundsInLocal();
+	var sb = node.localToScreen(lb);
+	var YOffset = 20;
+	var nodeYOffset = sb.getMaxY() + YOffset;
+        hintMenu.show(node, sb.getMinX(), nodeYOffset);
     }
 
 }
